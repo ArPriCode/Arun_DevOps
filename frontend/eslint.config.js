@@ -10,9 +10,21 @@ export default [
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
       globals: {
         window: 'readonly',
         document: 'readonly',
+        localStorage: 'readonly',
+        alert: 'readonly',
+        navigator: 'readonly',
+        Event: 'readonly',
+        URLSearchParams: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
         console: 'readonly',
       },
     },
@@ -27,6 +39,18 @@ export default [
       ...react.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
+      'react/prop-types': 'off',
+      'react/no-unescaped-entities': 'off',
+    },
+  },
+  {
+    files: ['cypress/e2e/**/*.cy.{js,jsx}'],
+    languageOptions: {
+      globals: {
+        describe: 'readonly',
+        it: 'readonly',
+        cy: 'readonly',
+      },
     },
   },
 ];

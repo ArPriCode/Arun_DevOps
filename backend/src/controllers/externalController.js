@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 const externalController = {
   // Proxy TMDb search
-  async searchSeries(req, res, next) {
+  async searchSeries(req, res) {
     try {
       const { query, page = 1 } = req.query;
 
@@ -21,7 +21,7 @@ const externalController = {
   },
 
   // Get series details from TMDb and sync to DB
-  async getSeriesDetails(req, res, next) {
+  async getSeriesDetails(req, res) {
     try {
       const { tmdbId } = req.params;
 
@@ -84,7 +84,7 @@ const externalController = {
   },
 
   // Get genres from TMDb
-  async getGenres(req, res, next) {
+  async getGenres(req, res) {
     try {
       const genres = await tmdbService.getGenres();
       res.json(genres);

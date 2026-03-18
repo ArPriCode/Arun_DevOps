@@ -47,13 +47,6 @@ function Hero() {
       : `https://image.tmdb.org/t/p/w1280${backdropPath}`
   }
 
-  const getPosterUrl = (posterPath) => {
-    if (!posterPath) return null
-    return posterPath.startsWith('http') 
-      ? posterPath 
-      : `https://image.tmdb.org/t/p/w500${posterPath}`
-  }
-
   const getGenresArray = (genres) => {
     if (Array.isArray(genres)) return genres
     if (typeof genres === 'string') {
