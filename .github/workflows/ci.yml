@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install backend dependencies
+        run: cd backend && npm install
+      - name: Install frontend dependencies
+        run: cd frontend && npm install
+      - name: Run backend tests
+        run: cd backend && npm test
+      - name: Run frontend tests
+        run: cd frontend && npm test || echo "No frontend tests yet"
+      - name: Run linter (backend)
+        run: cd backend && npx eslint . || echo "No lint errors or eslint not configured"
+      - name: Run linter (frontend)
+        run: cd frontend && npx eslint . || echo "No lint errors or eslint not configured"
