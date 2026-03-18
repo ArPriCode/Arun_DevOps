@@ -112,6 +112,9 @@ describe('Reviews Endpoints', () => {
     let review;
 
     beforeEach(async () => {
+      // Ensure isolation from previous tests
+      await prisma.review.deleteMany({ where: { seriesId: testSeries.id } });
+
       review = await prisma.review.create({
         data: {
           userId: testUser.id,
@@ -162,6 +165,9 @@ describe('Reviews Endpoints', () => {
     let review;
 
     beforeEach(async () => {
+      // Ensure isolation from previous tests
+      await prisma.review.deleteMany({ where: { seriesId: testSeries.id } });
+
       review = await prisma.review.create({
         data: {
           userId: testUser.id,
@@ -201,6 +207,9 @@ describe('Reviews Endpoints', () => {
 
   describe('Review Aggregation', () => {
     it('should correctly calculate average rating with multiple reviews', async () => {
+      // Ensure isolation from previous tests
+      await prisma.review.deleteMany({ where: { seriesId: testSeries.id } });
+
       // Create multiple reviews
       const review1 = await prisma.review.create({
         data: {
