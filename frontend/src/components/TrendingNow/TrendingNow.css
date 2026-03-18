@@ -1,0 +1,90 @@
+.trending-section {
+  padding: 48px 20px;
+}
+
+.section-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: 3px;
+  color: #fff;
+}
+
+.view-all-btn {
+  color: #c084fc;
+  font-size: 14px;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.3s ease;
+}
+
+.view-all-btn:hover {
+  color: #d8b4fe;
+}
+
+.view-all-btn i {
+  font-size: 12px;
+}
+
+.series-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+/* Responsive Design */
+@media (min-width: 640px) {
+  .series-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .section-title {
+    font-size: 40px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .series-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .trending-section {
+    padding: 48px 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .trending-section {
+    padding: 32px 15px;
+  }
+
+  .section-title {
+    font-size: 24px;
+  }
+
+  .view-all-btn {
+    font-size: 12px;
+  }
+
+  .series-grid {
+    gap: 12px;
+  }
+}
+

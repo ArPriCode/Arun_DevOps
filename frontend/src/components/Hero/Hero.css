@@ -1,0 +1,226 @@
+.hero-section {
+  position: relative;
+  height: 500px;
+  overflow: hidden;
+  margin-top: 64px;
+}
+
+.hero-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    linear-gradient(90deg, rgba(10, 10, 15, 0.95) 0%, rgba(10, 10, 15, 0.7) 50%, rgba(10, 10, 15, 0.4) 100%),
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect fill="%231a0000" width="1200" height="800"/><rect fill="%23330000" x="600" y="0" width="600" height="800"/><circle fill="%23ff4444" opacity="0.3" cx="800" cy="200" r="150"/><circle fill="%238800ff" opacity="0.2" cx="900" cy="400" r="200"/></svg>') center/cover;
+  filter: blur(2px);
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to right, rgba(10, 10, 15, 0.95), rgba(10, 10, 15, 0.7));
+}
+
+.hero-content {
+  position: relative;
+  z-index: 10;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.hero-text-content {
+  max-width: 600px;
+}
+
+.trending-badge {
+  display: inline-block;
+  background-color: #dc2626;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 20px;
+}
+
+.hero-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 48px;
+  font-weight: 400;
+  letter-spacing: 3px;
+  color: #fff;
+  margin-bottom: 16px;
+  line-height: 1.1;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+.hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #fbbf24;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.rating i {
+  font-size: 18px;
+}
+
+.meta-separator {
+  color: #9ca3af;
+  font-size: 16px;
+}
+
+.genre-badge {
+  background-color: rgba(147, 51, 234, 0.3);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.hero-description {
+  color: #d1d5db;
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+  max-width: 550px;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.watch-now-btn {
+  background: linear-gradient(to right, #9333ea, #2563eb);
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+  transition: all 0.3s ease;
+}
+
+.watch-now-btn:hover {
+  background: linear-gradient(to right, #a855f7, #3b82f6);
+  box-shadow: 0 0 25px rgba(168, 85, 247, 0.7);
+  transform: translateY(-2px);
+}
+
+.more-info-btn {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.more-info-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Responsive Design */
+@media (min-width: 640px) {
+  .hero-section {
+    height: 600px;
+  }
+
+  .hero-title {
+    font-size: 60px;
+  }
+
+  .hero-description {
+    font-size: 18px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-title {
+    font-size: 72px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-content {
+    padding: 0 15px;
+  }
+
+  .hero-title {
+    font-size: 36px;
+  }
+
+  .hero-description {
+    font-size: 14px;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .watch-now-btn,
+  .more-info-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    height: 450px;
+  }
+
+  .hero-title {
+    font-size: 28px;
+  }
+
+  .hero-meta {
+    font-size: 14px;
+    gap: 12px;
+  }
+
+  .trending-badge {
+    font-size: 10px;
+    padding: 5px 10px;
+  }
+}
+

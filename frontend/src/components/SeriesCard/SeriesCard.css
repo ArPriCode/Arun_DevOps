@@ -1,0 +1,147 @@
+.series-card {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.series-card:hover {
+  transform: translateY(-8px);
+}
+
+.poster-container {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 8px;
+  aspect-ratio: 2/3;
+}
+
+.poster-image {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.poster-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.series-card:hover .poster-image img {
+  transform: scale(1.05);
+}
+
+.placeholder-poster {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1b1b24 0%, #0a0a0f 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.rating-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rating-badge i {
+  color: #fbbf24;
+  font-size: 12px;
+}
+
+.rating-badge span {
+  color: #fff;
+}
+
+.series-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.genre-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.genre-tag {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.genre-purple,
+.genre-sci-fi,
+.genre-mystery {
+  background-color: rgba(147, 51, 234, 0.3);
+  color: #fff;
+}
+
+.genre-blue,
+.genre-thriller,
+.genre-drama,
+.genre-action {
+  background-color: rgba(37, 99, 235, 0.3);
+  color: #fff;
+}
+
+.genre-red,
+.genre-horror,
+.genre-crime {
+  background-color: rgba(220, 38, 38, 0.3);
+  color: #fff;
+}
+
+.genre-pink,
+.genre-romance {
+  background-color: rgba(219, 39, 119, 0.3);
+  color: #fff;
+}
+
+.genre-amber,
+.genre-historical,
+.genre-fantasy {
+  background-color: rgba(217, 119, 6, 0.3);
+  color: #fff;
+}
+
+.series-meta {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .series-title {
+    font-size: 12px;
+  }
+
+  .genre-tag {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+
+  .series-meta {
+    font-size: 11px;
+  }
+}
+

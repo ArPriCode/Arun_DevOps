@@ -1,0 +1,49 @@
+{
+  "name": "cinemora-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "migrate": "prisma migrate dev",
+    "generate": "prisma generate",
+    "seed": "node prisma/seed.js",
+    "seed:tvmaze": "node scripts/seed_tvmaze_series.js",
+    "seed:admin": "node prisma/seedAdmin.js",
+    "seed:series": "node prisma/seedSeries.js",
+    "cleanup:adult": "node scripts/cleanup_adult_content.js",
+    "cleanup:drama": "node scripts/cleanup_drama_genre.js",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ANIMESH9236/Cinemora-Backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ANIMESH9236/Cinemora-Backend/issues"
+  },
+  "homepage": "https://github.com/ANIMESH9236/Cinemora-Backend#readme",
+  "description": "",
+  "dependencies": {
+    "@prisma/client": "^6.19.0",
+    "axios": "^1.13.2",
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.4.1",
+    "jsonwebtoken": "^9.0.2",
+    "nodemon": "^3.1.10",
+    "prisma": "^6.19.0",
+    "validator": "^13.15.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0"
+  }
+}

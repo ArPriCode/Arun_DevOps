@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  role      String    @default("user")
+  createdAt DateTime  @default(now())
+  reviews   Review[]
+  favorites Favorite[]
+}
+
+model Series {
+  id             Int       @id @default(autoincrement())
+  title          String
+  externalId     String?   @unique // TMDb ID
+  overview       String?   @db.Text
+  posterPath     String?
+  backdropPath   String?
+  genres         Json?   @db.Json // JSON array of genre names
+  releaseYear    Int?
+  averageRating  Float     @default(0)
+  reviewsCount   Int       @default(0)
+  createdAt      DateTime  @default(now())
+  deletedAt      DateTime?
+  reviews        Review[]
+  favorites      Favorite[]
+  seasons        Season[]
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  seriesId  Int
+  rating    Int      // 1-10
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  series    Series   @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, seriesId]) // One review per user per series
+  @@index([seriesId])
+  @@index([userId])
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  seriesId  Int
+  addedAt   DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  series    Series   @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, seriesId]) // One favorite per user per series
+  @@index([userId])
+  @@index([seriesId])
+}
+
+model Season {
+  id          Int       @id @default(autoincrement())
+  seriesId    Int
+  seasonNumber Int
+  name        String?
+  overview    String?   @db.Text
+  airDate     DateTime?
+  createdAt   DateTime  @default(now())
+  series      Series    @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  episodes    Episode[]
+
+  @@unique([seriesId, seasonNumber])
+  @@index([seriesId])
+}
+
+model Episode {
+  id           Int       @id @default(autoincrement())
+  seasonId     Int
+  episodeNumber Int
+  name         String?
+  overview     String?   @db.Text
+  airDate      DateTime?
+  runtime      Int?
+  createdAt    DateTime  @default(now())
+  season       Season    @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@unique([seasonId, episodeNumber])
+  @@index([seasonId])
+}
+
+
+
