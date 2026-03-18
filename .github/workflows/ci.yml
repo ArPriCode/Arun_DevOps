@@ -22,8 +22,8 @@ jobs:
       - name: Run backend tests
         run: cd backend && npm test
       - name: Run frontend tests
-        run: cd frontend && npm test || echo "No frontend tests yet"
+        run: cd frontend && npm test
       - name: Run linter (backend)
-        run: cd backend && npx eslint . || echo "No lint errors or eslint not configured"
+        run: cd backend && npm run lint
       - name: Run linter (frontend)
-        run: cd frontend && npx eslint . || echo "No lint errors or eslint not configured"
+        run: cd frontend && npm run lint

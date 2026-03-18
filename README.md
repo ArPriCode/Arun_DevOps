@@ -263,12 +263,78 @@ CACHE_TTL=3600
 - Verify backend is running on port 5001
 - Check API_BASE_URL in `src/services/api.js`
 
-## Development Workflow
+## Development & Git Workflow
 
 1. Start MySQL database
 2. Start backend: `cd backend && npm start`
 3. Start frontend: `cd frontend && npm run dev`
 4. Open `http://localhost:5173` in browser
+
+### Git Strategy & Commit Regularity
+
+- Use feature branches: `feature/auth`, `bugfix/review-validation`, etc.
+- Keep commits **small and meaningful**:
+  - Example messages: `feat: add series filter by genre`, `fix: handle invalid JWT token`, `test: add integration tests for reviews`.
+- Avoid “last-day bulk commits” – push regularly while working.
+- Open Pull Requests from feature branches into `main` so CI + linting run on every change.
+
+## CI/CD: GitHub Actions Workflows
+
+### 1. CI Workflow (`.github/workflows/ci.yml`)
+
+Triggers:
+- **on push** to `main`
+- **on pull_request** targeting `main`
+
+Pipeline stages:
+- **Install dependencies**
+  - `backend`: `npm install`
+  - `frontend`: `npm install`
+- **Run tests**
+  - Backend: `cd backend && npm test`
+  - Frontend: `cd frontend && npm test` (Vitest)
+- **Run linters**
+  - Backend: `cd backend && npm run lint`
+  - Frontend: `cd frontend && npm run lint`
+
+Behavior:
+- If **tests or lint fail**, the workflow fails and PR cannot be merged.
+- Ensures **PR checks (lint + tests)** are always green before merge.
+
+### 2. Dependabot (`.github/dependabot.yml`)
+
+- Monitors both `backend` and `frontend` `package.json` files.
+- Creates automated PRs for **outdated npm dependencies** on a **weekly** schedule.
+- Keeps the project secure and up-to-date with minimal manual effort.
+
+### 3. EC2 Deploy Workflow (`.github/workflows/deploy-ec2.yml`)
+
+Triggers:
+- `workflow_dispatch` (manual trigger from GitHub UI).
+- `push` to `main` (can be kept or disabled depending on deployment policy).
+
+Expected GitHub secrets:
+- `EC2_SSH_KEY` – private SSH key for the EC2 instance.
+- `EC2_HOST` – EC2 public IP or hostname.
+- `EC2_USER` – SSH user (e.g. `ubuntu`, `ec2-user`).
+
+What it does (idempotent steps):
+- Sets up SSH and adds EC2 host to `known_hosts`.
+- On EC2:
+  - `mkdir -p ~/cinemora` (safe to run multiple times).
+  - Clone repo if not present, else `git fetch` + `git reset --hard origin/main`.
+  - Backend:
+    - `npm install`
+    - `npx prisma migrate deploy` (idempotent migration)
+    - Starts or restarts server using PM2 (`pm2 startOrReload` with fallback).
+  - Frontend:
+    - `npm install`
+    - `npm run build`
+
+This satisfies:
+- **GitHub → EC2 integration**
+- **Automated deployment** (Full/Partial depending on how you use it)
+- **Idempotent scripts** – safe to re-run without breaking state.
 
 ## Future Enhancements
 
@@ -288,4 +354,32 @@ ISC
 ## Contributing
 
 This is a capstone project. For questions or issues, please contact the project maintainer.
+
+## Explanation: Architecture, Workflow, and Design Decisions
+
+### Overall Architecture
+
+- **Backend (Node + Express + Prisma + MySQL)** exposes REST APIs for auth, series, reviews, and favorites. Business logic lives in `services`, routing in `routes`, and HTTP concerns in `controllers` and `Middleware`.
+- **Frontend (React + Vite)** consumes the backend APIs and provides a responsive UI for browsing series, writing reviews, and managing favorites.
+- **Database (MySQL)** stores users, series metadata, reviews, favorites, and optional seasons/episodes.
+- **External data (TVMaze)** is used once to seed the local DB, so the app is not dependent on a live external API at runtime.
+
+### Workflow & Testing Strategy
+
+- **Unit tests**:
+  - Backend: Jest tests for controllers/services (logic, validation, auth).
+  - Frontend: Vitest + Testing Library tests for React components (rendering, props, interactions).
+- **Integration tests**:
+  - Backend: Jest + Supertest hitting real Express routes + DB (API + DB).
+  - Frontend: Component tests that call real API endpoints or mocked API layer (Frontend + Backend).
+- **E2E tests (optional / bonus)**:
+  - Can be added with Cypress or Playwright to simulate full flows like `Login → Browse Series → Add Review → See Updated Rating`.
+
+### Key Design Decisions & Trade-offs
+
+- **Prisma + MySQL** for strong typing, migrations, and easier schema evolution.
+- **JWT auth** for stateless, scalable authentication between frontend and backend.
+- **In-memory caching** (with optional Redis) to speed up repeated TVMaze-related operations.
+- **Separation of concerns**: controllers vs services vs utils for testability and maintainability.
+- **Strict CI** (tests + lint on every PR) to keep `main` always deployable.
 
