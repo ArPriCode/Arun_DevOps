@@ -1,23 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-// Helper function to recalculate series aggregates
-async function recalculateSeriesAggregates(seriesId) {
-  const aggregates = await prisma.review.aggregate({
-    where: { seriesId },
-    _avg: { rating: true },
-    _count: true
-  });
-
-  await prisma.series.update({
-    where: { id: seriesId },
-    data: {
-      averageRating: aggregates._avg.rating || 0,
-      reviewsCount: aggregates._count || 0
-    }
-  });
-}
-
 const reviewsController = {
   // Create a new review
   async createReview(req, res, next) {

@@ -84,10 +84,6 @@ function SeriesDetail() {
     }
   }
 
-  const handleStarClick = (starIndex) => {
-    setRating(starIndex + 1)
-  }
-
   const handleSubmitReview = async (e) => {
     e.preventDefault()
     if (!currentUser) {
@@ -188,13 +184,6 @@ function SeriesDetail() {
       console.error('Failed to toggle favorite:', err)
       alert(err.response?.data?.message || 'Failed to update favorites')
     }
-  }
-
-  const getPosterUrl = (posterPath) => {
-    if (!posterPath) return null
-    return posterPath.startsWith('http') 
-      ? posterPath 
-      : `https://image.tmdb.org/t/p/w500${posterPath}`
   }
 
   const getBackdropUrl = (backdropPath) => {

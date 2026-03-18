@@ -28,7 +28,7 @@ function normalizeOrigin(raw) {
 }
 
 const frontendOrigin = normalizeOrigin(process.env.FRONTEND_URL) || 'http://localhost:5173';
-const allowedOrigins = [frontendOrigin, 'http://localhost:5173']; // add more if needed
+void frontendOrigin;
 
 // Middleware
 app.use(express.json());
