@@ -375,11 +375,4 @@ This is a capstone project. For questions or issues, please contact the project 
 - **E2E tests (optional / bonus)**:
   - Can be added with Cypress or Playwright to simulate full flows like `Login → Browse Series → Add Review → See Updated Rating`.
 
-### Key Design Decisions & Trade-offs
-
-- **Prisma + MySQL** for strong typing, migrations, and easier schema evolution.
-- **JWT auth** for stateless, scalable authentication between frontend and backend.
-- **In-memory caching** (with optional Redis) to speed up repeated TVMaze-related operations.
-- **Separation of concerns**: controllers vs services vs utils for testability and maintainability.
-- **Strict CI** (tests + lint on every PR) to keep `main` always deployable.
 
