@@ -25,11 +25,22 @@ jobs:
             exit 1
           fi
 
-      - name: Write SSH key (sanitize newlines)
+      - name: Write & validate SSH key
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
-          printf '%s' "${{ secrets.EC2_SSH_KEY }}" | tr -d '\r' > ~/.ssh/ec2_key
+          python3 - <<'PY'
+          import os
+          key = os.environ.get("EC2_SSH_KEY", "")
+          key = key.replace("\r\n", "\n").replace("\r", "\n")
+          with open(os.path.expanduser("~/.ssh/ec2_key"), "w", encoding="utf-8") as f:
+            f.write(key)
+            if not key.endswith("\n"):
+              f.write("\n")
+          PY
           chmod 600 ~/.ssh/ec2_key
+          ssh-keygen -y -f ~/.ssh/ec2_key >/dev/null
 
       - name: Add EC2 host to known_hosts
         run: |
