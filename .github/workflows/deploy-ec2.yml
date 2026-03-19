@@ -34,7 +34,12 @@ jobs:
       - name: Add EC2 host to known_hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
+          # Best-effort: avoid failing job if EC2 is temporarily unreachable.
+          for i in 1 2 3; do
+            ssh-keyscan -T 10 -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts && exit 0
+            sleep 3
+          done
+          echo "Warning: ssh-keyscan failed; continuing with StrictHostKeyChecking=no"
 
       - name: Deploy on EC2 (idempotent)
         run: |
