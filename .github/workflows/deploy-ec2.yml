@@ -35,11 +35,20 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           if [ -n "${EC2_SSH_KEY_B64}" ]; then
-            printf '%s' "${EC2_SSH_KEY_B64}" | base64 -d > ~/.ssh/ec2_key
+            printf '%s' "${EC2_SSH_KEY_B64}" | tr -d '\r' | base64 --decode > ~/.ssh/ec2_key
           else
             python3 -c "import os; p=os.path.expanduser('~/.ssh/ec2_key'); key=os.environ.get('EC2_SSH_KEY','').replace('\\r\\n','\\n').replace('\\r','\\n'); open(p,'w',encoding='utf-8').write(key + ('' if key.endswith('\\n') else '\\n'))"
           fi
           chmod 600 ~/.ssh/ec2_key
+          head -n 1 ~/.ssh/ec2_key | grep -Eq '^(-----BEGIN|ssh-|PuTTY-User-Key-File-)' || (echo "Invalid EC2 SSH key format (unexpected header). Use the EC2 .pem PRIVATE key or EC2_SSH_KEY_B64." && exit 1)
+          if head -n 1 ~/.ssh/ec2_key | grep -q '^ssh-'; then
+            echo "EC2_SSH_KEY looks like a PUBLIC key. Please paste the PRIVATE .pem key into EC2_SSH_KEY (or use EC2_SSH_KEY_B64)."
+            exit 1
+          fi
+          if head -n 1 ~/.ssh/ec2_key | grep -q '^PuTTY-User-Key-File-'; then
+            echo "EC2_SSH_KEY looks like a PuTTY .ppk key. Convert to OpenSSH PEM (.pem) and update the secret."
+            exit 1
+          fi
           ssh-keygen -y -f ~/.ssh/ec2_key >/dev/null
 
       - name: Add EC2 host to known_hosts
