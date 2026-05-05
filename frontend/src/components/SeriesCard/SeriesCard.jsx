@@ -14,7 +14,7 @@ function SeriesCard({ id, title, rating, genres, year, seasons, image }) {
   };
 
   return (
-    <div className="series-card" onClick={handleClick}>
+    <div className="series-card" data-testid="series-card" onClick={handleClick}>
       <div className="poster-container">
         <div className="poster-image">
           {image ? <img src={image} alt={title} /> : <div className="placeholder-poster"></div>}
