@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: Cinemora CI/CD Pipeline
 
 on:
   push:
@@ -7,62 +7,49 @@ on:
     branches: [main]
 
 env:
-  AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REPOSITORY: cinemora-backend
-  ECS_CLUSTER: cinemora-cluster
-  ECS_SERVICE: cinemora-backend-service
-  TF_VERSION: '1.9.8'
+  EKS_CLUSTER_NAME: cinemora-eks-cluster
 
 jobs:
   # ── Phase 1: Testing ────────────────────────────────────────────────────────
-  test:
-    name: Phase 1 — Run Tests
+  phase1-testing:
+    name: Phase 1 — Testing
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
 
       - name: Install backend dependencies
-        run: npm ci
+        run: npm install
         working-directory: backend
 
-      - name: Run backend unit & integration tests
-        run: npm test -- --coverage --coverageReporters=text --coverageReporters=lcov
+      - name: Run backend tests
+        run: npm test -- --coverage
         working-directory: backend
         env:
           NODE_ENV: test
           JWT_SECRET: test-jwt-secret-ci
 
-      - name: Upload test coverage report
+      - name: Upload test coverage
         uses: actions/upload-artifact@v4
-        if: always()
         with:
-          name: backend-coverage-report
+          name: test-report
           path: backend/coverage/
-          retention-days: 7
 
-  # ── Phase 2: Terraform Infrastructure ──────────────────────────────────────
-  terraform:
+  # ── Phase 2: Terraform ──────────────────────────────────────────────────────
+  phase2-terraform:
     name: Phase 2 — Terraform Infrastructure
+    needs: phase1-testing
     runs-on: ubuntu-latest
-    needs: test
-    if: always() && needs.test.result == 'success' && github.ref == 'refs/heads/main' && github.event_name == 'push'
-
-    defaults:
-      run:
-        working-directory: terraform
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -70,46 +57,40 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: ${{ env.TF_VERSION }}
+          terraform_version: '1.9.8'
 
       - name: Terraform Init
+        working-directory: ./terraform
         run: terraform init
 
       - name: Terraform Validate
+        working-directory: ./terraform
         run: terraform validate
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplan -var="aws_region=${{ env.AWS_REGION }}"
+        working-directory: ./terraform
+        run: terraform plan
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: ./terraform
+        run: terraform apply -auto-approve
 
-      - name: Save Terraform outputs
-        id: tf_outputs
-        run: |
-          echo "ecr_url=$(terraform output -raw ecr_repository_url)" >> $GITHUB_OUTPUT
-          echo "s3_bucket=$(terraform output -raw s3_bucket_name)" >> $GITHUB_OUTPUT
-          echo "ecs_cluster=$(terraform output -raw ecs_cluster_name)" >> $GITHUB_OUTPUT
-
-    outputs:
-      ecr_url: ${{ steps.tf_outputs.outputs.ecr_url }}
-      s3_bucket: ${{ steps.tf_outputs.outputs.s3_bucket }}
-
-  # ── Phase 3: Docker Build & Push to ECR ────────────────────────────────────
-  docker-build:
-    name: Phase 3 — Docker Build & Push to ECR
+  # ── Phase 3: Container Build ────────────────────────────────────────────────
+  phase3-container-build:
+    name: Phase 3 — Container Build & Push to ECR
+    needs: phase2-terraform
     runs-on: ubuntu-latest
-    needs: terraform
-    if: always() && needs.terraform.result == 'success' && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    outputs:
+      image_name: ${{ steps.build-image.outputs.image }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -117,45 +98,30 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build Docker image (multi-stage)
+      - name: Build, tag, and push image to ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build \
-            --target production \
-            -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest \
-            -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} \
-            ./backend
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./backend
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Push image to ECR
-        run: |
-          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
-          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-
-      - name: Verify image in ECR
-        run: |
-          aws ecr describe-images \
-            --repository-name ${{ env.ECR_REPOSITORY }} \
-            --region ${{ env.AWS_REGION }} \
-            --query 'imageDetails[0].imageTags'
-
-    outputs:
-      image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-
-  # ── Phase 3: Deploy to ECS Fargate ─────────────────────────────────────────
-  deploy-ecs:
-    name: Phase 3 — Deploy to ECS Fargate
+  # ── Phase 4: Kubernetes Deployment ─────────────────────────────────────────
+  phase4-kubernetes-deployment:
+    name: Phase 4 — Kubernetes Deployment (EKS)
+    needs: phase3-container-build
     runs-on: ubuntu-latest
-    needs: docker-build
-    if: always() && needs.docker-build.result == 'success' && github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -163,34 +129,32 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Update ECS service with new image
+      - name: Update kubeconfig
         run: |
-          aws ecs update-service \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --service ${{ env.ECS_SERVICE }} \
-            --force-new-deployment \
-            --region ${{ env.AWS_REGION }}
+          aws eks update-kubeconfig \
+            --region ${{ secrets.AWS_REGION }} \
+            --name $EKS_CLUSTER_NAME
 
-      - name: Wait for ECS service to stabilize
+      - name: Deploy to EKS
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          aws ecs wait services-stable \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --services ${{ env.ECS_SERVICE }} \
-            --region ${{ env.AWS_REGION }}
+          FULL_IMAGE_NAME="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "Deploying image: $FULL_IMAGE_NAME"
+          sed -i "s|<IMAGE_NAME>|$FULL_IMAGE_NAME|g" k8s/deployment.yaml
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
 
-      - name: Verify ECS service is running
+      - name: Verify deployment
         run: |
-          STATUS=$(aws ecs describe-services \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --services ${{ env.ECS_SERVICE }} \
-            --region ${{ env.AWS_REGION }} \
-            --query 'services[0].status' \
-            --output text)
-          echo "ECS Service Status: $STATUS"
-          [ "$STATUS" = "ACTIVE" ] && echo "✅ Service is running!" || exit 1
+          kubectl rollout status deployment/cinemora-backend \
+            -n cinemora --timeout=120s
+          kubectl get services -n cinemora

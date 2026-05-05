@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cinemora-backend
+  namespace: cinemora
+  labels:
+    app: cinemora-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cinemora-backend
+  template:
+    metadata:
+      labels:
+        app: cinemora-backend
+    spec:
+      containers:
+        - name: cinemora-backend
+          image: <IMAGE_NAME>
+          ports:
+            - containerPort: 5001
+          env:
+            - name: NODE_ENV
+              value: 'production'
+            - name: PORT
+              value: '5001'
+          resources:
+            requests:
+              memory: '128Mi'
+              cpu: '100m'
+            limits:
+              memory: '256Mi'
+              cpu: '200m'
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5001
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5001
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001

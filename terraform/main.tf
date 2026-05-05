@@ -12,33 +12,7 @@ provider "aws" {
   region = var.aws_region
 }
 
-# ── Import existing resources (created in previous runs) ────────────────────
-import {
-  to = aws_s3_bucket.cinemora_artifacts
-  id = "cinemora-artifacts-arun-devops-2026"
-}
-
-import {
-  to = aws_ecr_repository.cinemora_backend
-  id = "cinemora-backend"
-}
-
-import {
-  to = aws_security_group.ecs_sg
-  id = "sg-0ff7d7955f7af7875"
-}
-
-import {
-  to = aws_cloudwatch_log_group.cinemora_backend
-  id = "/ecs/cinemora-backend"
-}
-
-import {
-  to = aws_ecs_cluster.cinemora
-  id = "cinemora-cluster"
-}
-
-# ── S3 Bucket (unique name, versioning, encryption, public access blocked) ──
+# ── S3 Bucket ────────────────────────────────────────────────────────────────
 
 resource "aws_s3_bucket" "cinemora_artifacts" {
   bucket        = var.s3_bucket_name
@@ -74,10 +48,10 @@ resource "aws_s3_bucket_public_access_block" "cinemora_artifacts" {
   restrict_public_buckets = true
 }
 
-# ── ECR Repository ──────────────────────────────────────────────────────────
+# ── ECR Repository ───────────────────────────────────────────────────────────
 
 resource "aws_ecr_repository" "cinemora_backend" {
-  name                 = "cinemora-backend"
+  name                 = var.ecr_repo_name
   image_tag_mutability = "MUTABLE"
   force_delete         = true
 
@@ -91,21 +65,9 @@ resource "aws_ecr_repository" "cinemora_backend" {
   }
 }
 
-# ── ECS Cluster ─────────────────────────────────────────────────────────────
+# ── IAM Role (use existing LabRole in AWS Academy) ───────────────────────────
 
-resource "aws_ecs_cluster" "cinemora" {
-  name = "cinemora-cluster"
-
-  tags = {
-    Project     = "cinemora"
-    Environment = var.environment
-  }
-}
-
-# ── IAM Role for ECS Task Execution ─────────────────────────────────────────
-# AWS Academy restricts iam:CreateRole — use the pre-existing LabRole instead
-
-data "aws_iam_role" "ecs_task_execution" {
+data "aws_iam_role" "lab_role" {
   name = "LabRole"
 }
 
@@ -122,82 +84,15 @@ data "aws_subnets" "default" {
   }
 }
 
-# ── Security Group for ECS ───────────────────────────────────────────────────
+# ── EKS Cluster ──────────────────────────────────────────────────────────────
 
-resource "aws_security_group" "ecs_sg" {
-  name        = "cinemora-ecs-sg"
-  description = "Allow inbound traffic to Cinemora backend"
-  vpc_id      = data.aws_vpc.default.id
+resource "aws_eks_cluster" "cinemora" {
+  name     = var.eks_cluster_name
+  role_arn = data.aws_iam_role.lab_role.arn
 
-  ingress {
-    from_port   = 5001
-    to_port     = 5001
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+  vpc_config {
+    subnet_ids = data.aws_subnets.default.ids
   }
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Project = "cinemora"
-  }
-}
-
-# ── ECS Task Definition ──────────────────────────────────────────────────────
-
-resource "aws_ecs_task_definition" "cinemora_backend" {
-  family                   = "cinemora-backend"
-  network_mode             = "awsvpc"
-  requires_compatibilities = ["FARGATE"]
-  cpu                      = "256"
-  memory                   = "512"
-  execution_role_arn       = data.aws_iam_role.ecs_task_execution.arn
-
-  container_definitions = jsonencode([{
-    name      = "cinemora-backend"
-    image     = "${aws_ecr_repository.cinemora_backend.repository_url}:latest"
-    essential = true
-
-    portMappings = [{
-      containerPort = 5001
-      hostPort      = 5001
-      protocol      = "tcp"
-    }]
-
-    environment = [
-      { name = "NODE_ENV", value = "production" },
-      { name = "PORT", value = "5001" }
-    ]
-
-    healthCheck = {
-      command     = ["CMD-SHELL", "curl -f http://localhost:5001/health || exit 1"]
-      interval    = 30
-      timeout     = 5
-      retries     = 3
-      startPeriod = 60
-    }
-
-    logConfiguration = {
-      logDriver = "awslogs"
-      options = {
-        "awslogs-group"         = "/ecs/cinemora-backend"
-        "awslogs-region"        = var.aws_region
-        "awslogs-stream-prefix" = "ecs"
-      }
-    }
-  }])
 
   tags = {
     Project     = "cinemora"
@@ -205,31 +100,21 @@ resource "aws_ecs_task_definition" "cinemora_backend" {
   }
 }
 
-# ── CloudWatch Log Group ─────────────────────────────────────────────────────
+# ── EKS Node Group ───────────────────────────────────────────────────────────
 
-resource "aws_cloudwatch_log_group" "cinemora_backend" {
-  name              = "/ecs/cinemora-backend"
-  retention_in_days = 7
+resource "aws_eks_node_group" "cinemora" {
+  cluster_name    = aws_eks_cluster.cinemora.name
+  node_group_name = "cinemora-nodes"
+  node_role_arn   = data.aws_iam_role.lab_role.arn
+  subnet_ids      = data.aws_subnets.default.ids
 
-  tags = {
-    Project = "cinemora"
+  scaling_config {
+    desired_size = 2
+    max_size     = 3
+    min_size     = 1
   }
-}
 
-# ── ECS Service ──────────────────────────────────────────────────────────────
-
-resource "aws_ecs_service" "cinemora_backend" {
-  name            = "cinemora-backend-service"
-  cluster         = aws_ecs_cluster.cinemora.id
-  task_definition = aws_ecs_task_definition.cinemora_backend.arn
-  desired_count   = 1
-  launch_type     = "FARGATE"
-
-  network_configuration {
-    subnets          = data.aws_subnets.default.ids
-    security_groups  = [aws_security_group.ecs_sg.id]
-    assign_public_ip = true
-  }
+  instance_types = ["t3.small"]
 
   tags = {
     Project     = "cinemora"
