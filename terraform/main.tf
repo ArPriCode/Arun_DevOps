@@ -12,6 +12,32 @@ provider "aws" {
   region = var.aws_region
 }
 
+# ── Import existing resources (created in previous runs) ────────────────────
+import {
+  to = aws_s3_bucket.cinemora_artifacts
+  id = "cinemora-artifacts-arun-devops-2026"
+}
+
+import {
+  to = aws_ecr_repository.cinemora_backend
+  id = "cinemora-backend"
+}
+
+import {
+  to = aws_security_group.ecs_sg
+  id = "sg-0ff7d7955f7af7875"
+}
+
+import {
+  to = aws_cloudwatch_log_group.cinemora_backend
+  id = "/ecs/cinemora-backend"
+}
+
+import {
+  to = aws_ecs_cluster.cinemora
+  id = "cinemora-cluster"
+}
+
 # ── S3 Bucket (unique name, versioning, encryption, public access blocked) ──
 
 resource "aws_s3_bucket" "cinemora_artifacts" {
