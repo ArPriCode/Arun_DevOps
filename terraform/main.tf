@@ -23,6 +23,11 @@ import {
   id = "cinemora-backend"
 }
 
+import {
+  to = aws_eks_cluster.cinemora
+  id = "cinemora-eks-cluster"
+}
+
 # ── S3 Bucket ────────────────────────────────────────────────────────────────
 
 resource "aws_s3_bucket" "cinemora_artifacts" {
