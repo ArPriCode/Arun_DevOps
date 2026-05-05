@@ -1,378 +1,206 @@
-# Cinemora - Web Series Review Platform
+# Cinemora — Web Series Review Platform
 
-A full-stack web application for discovering, reviewing, and tracking your favorite TV series.
+A full-stack web application for discovering, reviewing, and tracking web series. Built with React + Node.js/Express + MySQL, deployed using a complete DevOps pipeline.
 
-## Project Overview
+---
 
-Cinemora is a capstone project that provides a comprehensive platform for users to:
-- Search and discover TV series using TVMaze data (seeded into local DB)
-- Write and manage reviews with ratings (1-10 scale)
-- Track favorite series in a personal watchlist
-- View trending and top-rated series
-- Browse series by genre with filtering and sorting
-
-## Tech Stack
-
-### Backend
-- **Runtime**: Node.js + Express.js
-- **Database**: MySQL
-- **ORM**: Prisma
-- **Authentication**: JWT + bcrypt
-- **External Data Source**: TVMaze (no API key needed, used for seeding)
-- **Caching**: In-memory cache with TTL (Redis optional)
-- **Testing**: Jest + Supertest
-
-### Frontend
-- **Framework**: React (functional components + hooks)
-- **Routing**: react-router-dom
-- **HTTP Client**: axios
-- **Build Tool**: Vite
-
-## Project Structure
+## Architecture
 
 ```
-DUMMY/
-├── backend/              # Express.js API server
-│   ├── src/
-│   │   ├── controllers/  # Route handlers
-│   │   ├── routes/       # API routes
-│   │   ├── services/     # Business logic
-│   │   ├── Middleware/   # Auth & error handling
-│   │   └── utils/        # Utilities
-│   ├── prisma/           # Database schema & migrations
-│   ├── tests/            # Test files
-│   └── package.json
-├── frontend/             # React frontend
-│   ├── src/
-│   │   ├── Pages/        # Page components
-│   │   ├── components/   # Reusable components
-│   │   ├── services/     # API service
-│   │   └── App.jsx       # Main app component
-│   └── package.json
-└── README.md             # This file
+Frontend (React + Vite)  →  Backend (Node.js + Express)  →  Database (MySQL + Prisma)
+        ↓                           ↓
+   GitHub Actions CI/CD        AWS EKS (Kubernetes)
+        ↓
+   Terraform (IaC)  →  AWS (S3 + ECR + EKS)
 ```
 
-## Getting Started
+---
 
-### Prerequisites
+## DevOps Pipeline
 
-- Node.js (v18 or higher)
-- MySQL (v8.0 or higher)
-- npm or yarn
+### GitHub Actions Workflows
 
-### Backend Setup
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| `ci.yml` | push/PR to main | Backend tests, frontend tests, E2E (Cypress) |
+| `pr-checks.yml` | Every PR | ESLint + Prettier format check |
+| `pipeline.yml` | push to main | Full 4-phase CI/CD pipeline |
+| `deploy-ec2.yml` | Manual | Deploy to EC2 via SSH |
+| `dependabot.yml` | Weekly | Auto-update npm + GitHub Actions dependencies |
 
-1. Navigate to backend directory:
+### CI/CD Pipeline — 4 Phases
+
+```
+Push to main
+     ↓
+Phase 1 — Testing
+  ├── Jest unit tests (backend)
+  ├── Integration tests (API + in-memory DB)
+  └── Coverage report artifact
+
+     ↓
+Phase 2 — Terraform Infrastructure
+  ├── terraform init
+  ├── terraform validate
+  ├── terraform plan
+  └── terraform apply
+       ├── S3 bucket (versioning + AES256 encryption + public access blocked)
+       ├── ECR repository (Docker image registry)
+       └── EKS cluster + node group (2 nodes)
+
+     ↓
+Phase 3 — Container Build
+  ├── Docker multi-stage build
+  ├── Push to Amazon ECR
+  └── Tagged with git SHA
+
+     ↓
+Phase 4 — Kubernetes Deployment
+  ├── aws eks update-kubeconfig
+  ├── kubectl apply namespace/deployment/service
+  └── kubectl rollout status (verify)
+```
+
+---
+
+## Infrastructure (Terraform)
+
+All infrastructure is defined as code in `terraform/`:
+
+| Resource | Config |
+|----------|--------|
+| **S3 Bucket** | Versioning enabled, AES256 encryption, public access blocked |
+| **ECR Repository** | Image scanning on push, mutable tags |
+| **EKS Cluster** | `cinemora-eks-cluster`, us-east-1 |
+| **EKS Node Group** | 2 nodes, `t3.small`, auto-scaling (1-3) |
+
+---
+
+## Kubernetes (k8s/)
+
+```
+k8s/
+├── namespace.yaml     # cinemora namespace
+├── deployment.yaml    # 2 replicas, resource limits, liveness + readiness probes
+└── service.yaml       # LoadBalancer on port 80 → 5001
+```
+
+### Deployment specs:
+- **Replicas:** 2 minimum
+- **Resource limits:** 200m CPU, 256Mi memory
+- **Liveness probe:** GET /health every 10s
+- **Readiness probe:** GET /health every 5s
+- **Non-root user:** UID 1001
+- **Namespace:** `cinemora` (non-default)
+
+---
+
+## Docker
+
+### Dockerfile (multi-stage)
+
+```
+Stage 1 (builder)   →  Install deps + generate Prisma client
+Stage 2 (production) →  Production deps only + non-root user + healthcheck
+```
+
+### Docker Compose (local dev)
+
 ```bash
-cd backend
+docker-compose up
 ```
 
-2. Install dependencies:
-```bash
-npm install
-```
+Starts:
+- `backend` on port 5001
+- `db` (MySQL 8) on port 3306
 
-3. Create `.env` file (copy from `.env.example`):
-```bash
-cp .env.example .env
-```
-
-4. Edit `.env` with your configuration:
-```env
-DATABASE_URL="mysql://user:password@localhost:3306/cinemora_db"
-JWT_SECRET="your-super-secret-jwt-key"
-PORT=5001
-FRONTEND_URL=http://localhost:5173
-CACHE_TTL=3600
-```
-
-5. Create MySQL database:
-```sql
-CREATE DATABASE cinemora_db;
-```
-
-6. Run migrations:
-```bash
-npm run migrate
-# or
-npx prisma migrate dev
-```
-
-7. (Optional) Seed database:
-```bash
-npm run seed
-```
-
-8. Start backend server:
-```bash
-npm start
-```
-
-Backend will run on `http://127.0.0.1:5001`
-
-### Frontend Setup
-
-1. Navigate to frontend directory:
-```bash
-cd frontend
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Start development server:
-```bash
-npm run dev
-```
-
-Frontend will run on `http://localhost:5173`
-
-## API Documentation
-
-Base URL: `http://127.0.0.1:5001/api`
-
-### Authentication
-- `POST /api/auth/signup` - Register new user
-- `POST /api/auth/login` - Login user
-
-### Series
-- `GET /api/series` - List/search series (query: `q`, `genre`, `sort`, `page`, `limit`, `filter`)
-- `GET /api/series/:id` - Get series details with reviews
-
-### Reviews
-- `GET /api/reviews` - Get reviews (query: `seriesId`, `page`, `limit`)
-- `POST /api/reviews` - Create review (auth required)
-- `PUT /api/reviews/:id` - Update review (auth required)
-- `DELETE /api/reviews/:id` - Delete review (auth required)
-
-### Favorites
-- `POST /api/favorites` - Add to favorites (auth required)
-- `DELETE /api/favorites/:id` - Remove from favorites (auth required)
-- `GET /api/user/favorites` - Get user favorites (auth required)
-
-### User
-- `GET /api/users/:id` - Get user profile
-- `PUT /api/users/:id` - Update profile (auth required)
-- `GET /api/user/reviews` - Get user reviews (auth required)
-
-> External TMDb proxy endpoints have been removed. Series data now comes from TVMaze via backend seed scripts.
-
-See `backend/README.md` for detailed API documentation.
-
-## Features
-
-### ✅ Implemented
-
-- User authentication (signup/login with JWT)
-- Series search, filtering, sorting, and pagination
-- Reviews CRUD with rating aggregation
-- Favorites/Watchlist management
-- Trending and top-rated series
-- TVMaze-based seeding with caching helpers
-- Responsive UI with loading states
-- Error handling and validation
-- Rate limiting
-- Unit and integration tests
+---
 
 ## Testing
 
-### Backend Tests
+| Type | Tool | Location |
+|------|------|----------|
+| Unit | Jest | `backend/tests/auth.middleware.test.js` |
+| Integration | Jest + Supertest | `backend/tests/auth.test.js`, `reviews.test.js` |
+| Frontend Unit | Vitest + RTL | `frontend/src/components/SeriesCard/SeriesCard.test.jsx` |
+| E2E | Cypress | `frontend/cypress/e2e/basic-flow.cy.js` |
 
 ```bash
-cd backend
-npm test
+# Backend tests
+cd backend && npm test
+
+# Frontend tests
+cd frontend && npm test
+
+# E2E tests
+cd frontend && npm run test:e2e
 ```
 
-Run with coverage:
+---
+
+## PR Checks (Linting)
+
+Every pull request automatically runs:
+- **ESLint** — backend (CommonJS) + frontend (React/JSX)
+- **Prettier** — format check on all files
+
+PR fails if any lint or format issue is found.
+
+---
+
+## Dependabot
+
+Auto-updates configured weekly for:
+- `backend/` npm dependencies
+- `frontend/` npm dependencies
+- `.github/workflows/` GitHub Actions versions
+
+---
+
+## GitHub Secrets Required
+
+| Secret | Purpose |
+|--------|---------|
+| `AWS_ACCESS_KEY_ID` | AWS authentication |
+| `AWS_SECRET_ACCESS_KEY` | AWS authentication |
+| `AWS_SESSION_TOKEN` | AWS Academy session |
+| `AWS_REGION` | AWS region (us-east-1) |
+| `EC2_HOST` | EC2 public IP |
+| `EC2_USER` | EC2 SSH user (ubuntu) |
+| `EC2_SSH_KEY_B64` | Base64 encoded .pem key |
+
+---
+
+## Idempotent Scripts
+
 ```bash
-npm test -- --coverage
+# Backend setup (safe to run multiple times)
+bash backend/scripts/setup.sh
+
+# Frontend setup (safe to run multiple times)
+bash frontend/scripts/setup.sh
 ```
 
-Tests cover:
-- Authentication (signup/login)
-- Reviews CRUD with aggregation
-- Authorization (owner-only operations)
+Both scripts use:
+- `npm ci` (reproducible installs)
+- `prisma migrate deploy` (skips applied migrations)
+- `pm2 startOrReload` (start or reload, never duplicate)
+- `mkdir -p` (no error if exists)
 
-## Sample Data
+---
 
-After running the seed script (`npm run seed` in backend), you can login with:
+## Tech Stack
 
-- **Email**: `john@example.com` | **Password**: `password123`
-- **Email**: `jane@example.com` | **Password**: `password123`
-- **Email**: `mike@example.com` | **Password**: `password123`
-
-## Environment Variables
-
-### Backend (.env)
-
-```env
-DATABASE_URL=mysql://user:password@localhost:3306/cinemora_db
-JWT_SECRET=your-secret-key
-PORT=5001
-FRONTEND_URL=http://localhost:5173
-CACHE_TTL=3600
-```
-
-## Database Schema
-
-- **User**: Authentication and user profile
-- **Series**: TV series metadata (seeded from TVMaze or dummy seeds)
-- **Review**: User reviews with ratings (1-10)
-- **Favorite**: User favorites/watchlist
-- **Season/Episode**: Optional series structure
-
-## Key Features Implementation
-
-### Reviews Aggregation
-- Series `averageRating` and `reviewsCount` are automatically recalculated transactionally when reviews are created, updated, or deleted
-- Prevents race conditions with database transactions
-
-### Caching
-- TVMaze helper responses are cached in-memory with configurable TTL (default: 1 hour)
-- Redis support available (commented code in `src/utils/cache.js`)
-
-### Security
-- Passwords hashed with bcrypt (10 rounds)
-- JWT tokens expire after 7 days
-- Rate limiting (100 requests per 15 minutes per IP)
-- Authorization checks on protected routes
-
-## Troubleshooting
-
-### Backend Issues
-
-**Database connection error:**
-- Ensure MySQL is running
-- Verify DATABASE_URL in `.env`
-- Check database exists
-
-
-**Port in use:**
-- Change PORT in `.env` or kill process on port 5001
-
-### Frontend Issues
-
-**CORS errors:**
-- Ensure backend is running
-- Check FRONTEND_URL in backend `.env`
-- Verify backend CORS configuration
-
-**API connection errors:**
-- Verify backend is running on port 5001
-- Check API_BASE_URL in `src/services/api.js`
-
-## Development & Git Workflow
-
-1. Start MySQL database
-2. Start backend: `cd backend && npm start`
-3. Start frontend: `cd frontend && npm run dev`
-4. Open `http://localhost:5173` in browser
-
-### Git Strategy & Commit Regularity
-
-- Use feature branches: `feature/auth`, `bugfix/review-validation`, etc.
-- Keep commits **small and meaningful**:
-  - Example messages: `feat: add series filter by genre`, `fix: handle invalid JWT token`, `test: add integration tests for reviews`.
-- Avoid “last-day bulk commits” – push regularly while working.
-- Open Pull Requests from feature branches into `main` so CI + linting run on every change.
-
-## CI/CD: GitHub Actions Workflows
-
-### 1. CI Workflow (`.github/workflows/ci.yml`)
-
-Triggers:
-- **on push** to `main`
-- **on pull_request** targeting `main`
-
-Pipeline stages:
-- **Install dependencies**
-  - `backend`: `npm install`
-  - `frontend`: `npm install`
-- **Run tests**
-  - Backend: `cd backend && npm test`
-  - Frontend: `cd frontend && npm test` (Vitest)
-- **Run linters**
-  - Backend: `cd backend && npm run lint`
-  - Frontend: `cd frontend && npm run lint`
-
-Behavior:
-- If **tests or lint fail**, the workflow fails and PR cannot be merged.
-- Ensures **PR checks (lint + tests)** are always green before merge.
-
-### 2. Dependabot (`.github/dependabot.yml`)
-
-- Monitors both `backend` and `frontend` `package.json` files.
-- Creates automated PRs for **outdated npm dependencies** on a **weekly** schedule.
-- Keeps the project secure and up-to-date with minimal manual effort.
-
-### 3. EC2 Deploy Workflow (`.github/workflows/deploy-ec2.yml`)
-
-Triggers:
-- `workflow_dispatch` (manual trigger from GitHub UI).
-- `push` to `main` (can be kept or disabled depending on deployment policy).
-
-Expected GitHub secrets:
-- `EC2_SSH_KEY` – private SSH key for the EC2 instance.
-- `EC2_HOST` – EC2 public IP or hostname.
-- `EC2_USER` – SSH user (e.g. `ubuntu`, `ec2-user`).
-
-What it does (idempotent steps):
-- Sets up SSH and adds EC2 host to `known_hosts`.
-- On EC2:
-  - `mkdir -p ~/cinemora` (safe to run multiple times).
-  - Clone repo if not present, else `git fetch` + `git reset --hard origin/main`.
-  - Backend:
-    - `npm install`
-    - `npx prisma migrate deploy` (idempotent migration)
-    - Starts or restarts server using PM2 (`pm2 startOrReload` with fallback).
-  - Frontend:
-    - `npm install`
-    - `npm run build`
-
-This satisfies:
-- **GitHub → EC2 integration**
-- **Automated deployment** (Full/Partial depending on how you use it)
-- **Idempotent scripts** – safe to re-run without breaking state.
-
-## Future Enhancements
-
-- [ ] Redis caching for production
-- [ ] Email verification
-- [ ] Password reset
-- [ ] Admin panel
-- [ ] Advanced filtering options
-- [ ] Series recommendations
-- [ ] Social features (follow users, like reviews)
-- [ ] Episode-level reviews
-
-## License
-
-ISC
-
-## Contributing
-
-This is a capstone project. For questions or issues, please contact the project maintainer.
-
-## Explanation: Architecture, Workflow, and Design Decisions
-
-### Overall Architecture
-
-- **Backend (Node + Express + Prisma + MySQL)** exposes REST APIs for auth, series, reviews, and favorites. Business logic lives in `services`, routing in `routes`, and HTTP concerns in `controllers` and `Middleware`.
-- **Frontend (React + Vite)** consumes the backend APIs and provides a responsive UI for browsing series, writing reviews, and managing favorites.
-- **Database (MySQL)** stores users, series metadata, reviews, favorites, and optional seasons/episodes.
-- **External data (TVMaze)** is used once to seed the local DB, so the app is not dependent on a live external API at runtime.
-
-### Workflow & Testing Strategy
-
-- **Unit tests**:
-  - Backend: Jest tests for controllers/services (logic, validation, auth).
-  - Frontend: Vitest + Testing Library tests for React components (rendering, props, interactions).
-- **Integration tests**:
-  - Backend: Jest + Supertest hitting real Express routes + DB (API + DB).
-  - Frontend: Component tests that call real API endpoints or mocked API layer (Frontend + Backend).
-- **E2E tests (optional / bonus)**:
-  - Can be added with Cypress or Playwright to simulate full flows like `Login → Browse Series → Add Review → See Updated Rating`.
-
-
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 18, Vite, React Router v6, Axios |
+| Backend | Node.js, Express 5, Prisma ORM |
+| Database | MySQL 8 |
+| Auth | JWT (jsonwebtoken) |
+| Testing | Jest, Vitest, Cypress, Supertest |
+| IaC | Terraform |
+| Container | Docker (multi-stage), Docker Compose |
+| Orchestration | Kubernetes (EKS) |
+| CI/CD | GitHub Actions |
+| Registry | Amazon ECR |
+| Storage | Amazon S3 |
