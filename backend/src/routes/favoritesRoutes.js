@@ -10,4 +10,3 @@ router.post('/', verifyToken, favoritesController.addFavorite);
 router.delete('/:id', verifyToken, favoritesController.removeFavorite);
 
 module.exports = router;
-

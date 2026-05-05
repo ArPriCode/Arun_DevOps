@@ -1,67 +1,67 @@
-import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { seriesAPI } from '../../services/api'
-import './Hero.css'
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { seriesAPI } from '../../services/api';
+import './Hero.css';
 
 function Hero() {
-  const navigate = useNavigate()
-  const [trendingSeries, setTrendingSeries] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const navigate = useNavigate();
+  const [trendingSeries, setTrendingSeries] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchTrending = async () => {
       try {
-        const response = await seriesAPI.getSeries({ filter: 'trending', page: 1, limit: 1 })
+        const response = await seriesAPI.getSeries({ filter: 'trending', page: 1, limit: 1 });
         if (response.data.results && response.data.results.length > 0) {
-          setTrendingSeries(response.data.results[0])
+          setTrendingSeries(response.data.results[0]);
         }
       } catch (err) {
-        console.error('Failed to fetch trending series:', err)
+        console.error('Failed to fetch trending series:', err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchTrending()
-  }, [])
+    };
+    fetchTrending();
+  }, []);
 
   const handleWatchNow = () => {
     if (trendingSeries?.id) {
-      navigate(`/series-detail/${trendingSeries.id}`)
+      navigate(`/series-detail/${trendingSeries.id}`);
     } else {
-      navigate('/series')
+      navigate('/series');
     }
-  }
+  };
 
   const handleMoreInfo = () => {
     if (trendingSeries?.id) {
-      navigate(`/series-detail/${trendingSeries.id}`)
+      navigate(`/series-detail/${trendingSeries.id}`);
     } else {
-      navigate('/series')
+      navigate('/series');
     }
-  }
+  };
 
   const getBackdropUrl = (backdropPath) => {
-    if (!backdropPath) return null
-    return backdropPath.startsWith('http') 
-      ? backdropPath 
-      : `https://image.tmdb.org/t/p/w1280${backdropPath}`
-  }
+    if (!backdropPath) return null;
+    return backdropPath.startsWith('http')
+      ? backdropPath
+      : `https://image.tmdb.org/t/p/w1280${backdropPath}`;
+  };
 
   const getGenresArray = (genres) => {
-    if (Array.isArray(genres)) return genres
+    if (Array.isArray(genres)) return genres;
     if (typeof genres === 'string') {
       try {
-        return JSON.parse(genres)
+        return JSON.parse(genres);
       } catch {
-        return [genres]
+        return [genres];
       }
     }
-    return []
-  }
+    return [];
+  };
 
   const backdropStyle = trendingSeries?.backdropPath
     ? { backgroundImage: `url(${getBackdropUrl(trendingSeries.backdropPath)})` }
-    : {}
+    : {};
 
   return (
     <section id="home" className="hero-section">
@@ -73,7 +73,10 @@ function Hero() {
           <div className="trending-badge">TRENDING NOW</div>
           {loading ? (
             <div style={{ padding: '20px', textAlign: 'center' }}>
-              <i className="fas fa-spinner fa-spin" style={{ fontSize: '1.5rem', color: '#fff' }}></i>
+              <i
+                className="fas fa-spinner fa-spin"
+                style={{ fontSize: '1.5rem', color: '#fff' }}
+              ></i>
             </div>
           ) : trendingSeries ? (
             <>
@@ -98,7 +101,8 @@ function Hero() {
                 )}
               </div>
               <p className="hero-description">
-                {trendingSeries.overview || 'A gripping tale of power, betrayal, and redemption set in a dystopian future where humanity\'s last hope lies in the hands of unlikely heroes.'}
+                {trendingSeries.overview ||
+                  "A gripping tale of power, betrayal, and redemption set in a dystopian future where humanity's last hope lies in the hands of unlikely heroes."}
               </p>
               <div className="hero-buttons">
                 <button className="watch-now-btn" onClick={handleWatchNow}>
@@ -114,9 +118,7 @@ function Hero() {
           ) : (
             <>
               <h1 className="hero-title">Welcome to Cinemora</h1>
-              <p className="hero-description">
-                Discover and review your favorite web series
-              </p>
+              <p className="hero-description">Discover and review your favorite web series</p>
               <div className="hero-buttons">
                 <button className="watch-now-btn" onClick={() => navigate('/series')}>
                   <i className="fas fa-play"></i>
@@ -132,8 +134,7 @@ function Hero() {
         </div>
       </div>
     </section>
-  )
+  );
 }
 
-export default Hero
-
+export default Hero;

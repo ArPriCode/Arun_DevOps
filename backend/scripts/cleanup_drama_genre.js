@@ -42,9 +42,7 @@ async function main() {
   for (const series of allSeries) {
     const genresArray = normalizeGenres(series.genres);
 
-    const filtered = genresArray.filter(
-      (g) => String(g).toLowerCase() !== 'drama'
-    );
+    const filtered = genresArray.filter((g) => String(g).toLowerCase() !== 'drama');
 
     // If nothing changed, skip
     if (filtered.length === genresArray.length) continue;
@@ -57,9 +55,7 @@ async function main() {
     });
 
     updatedCount += 1;
-    console.log(
-      `✅ Updated series id=${series.id}, title="${series.title}" (removed Drama)`
-    );
+    console.log(`✅ Updated series id=${series.id}, title="${series.title}" (removed Drama)`);
   }
 
   console.log('\n🎉 Cleanup complete.');
@@ -75,5 +71,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-
-

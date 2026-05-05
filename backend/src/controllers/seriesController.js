@@ -11,7 +11,7 @@ const seriesController = {
         sort = 'rating', // rating, latest, title
         page = 1,
         limit = 10,
-        filter // trending, top-rated
+        filter, // trending, top-rated
       } = req.query;
 
       const pageNum = parseInt(page);
@@ -20,12 +20,12 @@ const seriesController = {
 
       // Build where clause (exclude soft-deleted series)
       const where = {
-        deletedAt: null
+        deletedAt: null,
       };
-      
+
       if (q) {
         where.title = {
-          contains: q
+          contains: q,
         };
       }
 
@@ -38,31 +38,29 @@ const seriesController = {
         const allSeriesForGenre = await prisma.series.findMany({
           where: {
             deletedAt: null,
-            ...(q && { title: { contains: q } })
+            ...(q && { title: { contains: q } }),
           },
-          select: { id: true, genres: true }
+          select: { id: true, genres: true },
         });
-        
+
         // Filter by genre in memory (case-insensitive)
         const genreLower = genre.toLowerCase();
         genreFilteredIds = allSeriesForGenre
-          .filter(s => {
-            const genres = typeof s.genres === 'string' 
-              ? JSON.parse(s.genres) 
-              : (s.genres || []);
-            return Array.isArray(genres) && genres.some(g => 
-              String(g).toLowerCase() === genreLower
+          .filter((s) => {
+            const genres = typeof s.genres === 'string' ? JSON.parse(s.genres) : s.genres || [];
+            return (
+              Array.isArray(genres) && genres.some((g) => String(g).toLowerCase() === genreLower)
             );
           })
-          .map(s => s.id);
-        
+          .map((s) => s.id);
+
         if (genreFilteredIds.length === 0) {
           // No series match the genre
           return res.json({
             results: [],
             page: pageNum,
             totalPages: 0,
-            totalResults: 0
+            totalResults: 0,
           });
         }
         where.id = { in: genreFilteredIds };
@@ -72,17 +70,10 @@ const seriesController = {
       let orderBy = {};
       if (filter === 'trending') {
         // Trending: most reviewed, then highest rated, then latest
-        orderBy = [
-          { reviewsCount: 'desc' },
-          { averageRating: 'desc' },
-          { createdAt: 'desc' }
-        ];
+        orderBy = [{ reviewsCount: 'desc' }, { averageRating: 'desc' }, { createdAt: 'desc' }];
       } else if (filter === 'top-rated') {
         // Top-rated: highest average rating, then reviews count
-        orderBy = [
-          { averageRating: 'desc' },
-          { reviewsCount: 'desc' }
-        ];
+        orderBy = [{ averageRating: 'desc' }, { reviewsCount: 'desc' }];
       } else {
         switch (sort) {
           case 'title':
@@ -116,14 +107,14 @@ const seriesController = {
           releaseYear: true,
           averageRating: true,
           reviewsCount: true,
-          overview: true
-        }
+          overview: true,
+        },
       });
 
       // Parse JSON genres if stored as string
-      const results = series.map(s => ({
+      const results = series.map((s) => ({
         ...s,
-        genres: typeof s.genres === 'string' ? JSON.parse(s.genres) : (s.genres || [])
+        genres: typeof s.genres === 'string' ? JSON.parse(s.genres) : s.genres || [],
       }));
 
       const totalPages = Math.ceil(totalResults / limitNum);
@@ -132,7 +123,7 @@ const seriesController = {
         results,
         page: pageNum,
         totalPages,
-        totalResults
+        totalResults,
       });
     } catch (error) {
       next(error);
@@ -144,7 +135,7 @@ const seriesController = {
     try {
       const { id } = req.params;
       const { page = 1, limit = 10 } = req.query;
-      
+
       const pageNum = parseInt(page);
       const limitNum = parseInt(limit);
       const skip = (pageNum - 1) * limitNum;
@@ -162,17 +153,17 @@ const seriesController = {
                 select: {
                   id: true,
                   name: true,
-                  email: true
-                }
-              }
-            }
+                  email: true,
+                },
+              },
+            },
           },
           _count: {
             select: {
-              reviews: true
-            }
-          }
-        }
+              reviews: true,
+            },
+          },
+        },
       });
 
       if (!series || series.deletedAt) {
@@ -181,7 +172,7 @@ const seriesController = {
 
       // Get total reviews count
       const totalReviews = await prisma.review.count({
-        where: { seriesId: series.id }
+        where: { seriesId: series.id },
       });
 
       const totalPages = Math.ceil(totalReviews / limitNum);
@@ -191,25 +182,24 @@ const seriesController = {
         ...series,
         genres: typeof series.genres === 'string' ? JSON.parse(series.genres) : series.genres,
         reviews: {
-          items: series.reviews.map(r => ({
+          items: series.reviews.map((r) => ({
             id: r.id,
             rating: r.rating,
             text: r.text,
             createdAt: r.createdAt,
             updatedAt: r.updatedAt,
-            user: r.user
+            user: r.user,
           })),
           page: pageNum,
-          totalPages
-        }
+          totalPages,
+        },
       };
 
       res.json({ series: formattedSeries });
     } catch (error) {
       next(error);
     }
-  }
+  },
 };
 
 module.exports = seriesController;
-

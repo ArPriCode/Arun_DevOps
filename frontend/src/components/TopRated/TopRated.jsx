@@ -1,51 +1,51 @@
-import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import SeriesCard from '../SeriesCard/SeriesCard'
-import { seriesAPI } from '../../services/api'
-import './TopRated.css'
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import SeriesCard from '../SeriesCard/SeriesCard';
+import { seriesAPI } from '../../services/api';
+import './TopRated.css';
 
 function TopRated() {
-  const navigate = useNavigate()
-  const [topRatedSeries, setTopRatedSeries] = useState([])
-  const [loading, setLoading] = useState(true)
+  const navigate = useNavigate();
+  const [topRatedSeries, setTopRatedSeries] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchTopRated = async () => {
       try {
-        const response = await seriesAPI.getSeries({ filter: 'top-rated', page: 1, limit: 5 })
-        setTopRatedSeries(response.data.results || [])
+        const response = await seriesAPI.getSeries({ filter: 'top-rated', page: 1, limit: 5 });
+        setTopRatedSeries(response.data.results || []);
       } catch (err) {
-        console.error('Failed to fetch top-rated series:', err)
-        setTopRatedSeries([])
+        console.error('Failed to fetch top-rated series:', err);
+        setTopRatedSeries([]);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchTopRated()
-  }, [])
+    };
+    fetchTopRated();
+  }, []);
 
   const handleViewAll = () => {
-    navigate('/series?filter=top-rated')
-  }
+    navigate('/series?filter=top-rated');
+  };
 
   const getPosterUrl = (posterPath) => {
-    if (!posterPath) return null
-    return posterPath.startsWith('http') 
-      ? posterPath 
-      : `https://image.tmdb.org/t/p/w500${posterPath}`
-  }
+    if (!posterPath) return null;
+    return posterPath.startsWith('http')
+      ? posterPath
+      : `https://image.tmdb.org/t/p/w500${posterPath}`;
+  };
 
   const getGenresArray = (genres) => {
-    if (Array.isArray(genres)) return genres
+    if (Array.isArray(genres)) return genres;
     if (typeof genres === 'string') {
       try {
-        return JSON.parse(genres)
+        return JSON.parse(genres);
       } catch {
-        return [genres]
+        return [genres];
       }
     }
-    return []
-  }
+    return [];
+  };
 
   return (
     <section className="top-rated-section">
@@ -58,28 +58,33 @@ function TopRated() {
         </div>
         {loading ? (
           <div style={{ padding: '40px', textAlign: 'center' }}>
-            <i className="fas fa-spinner fa-spin" style={{ fontSize: '2rem', color: '#e50914' }}></i>
+            <i
+              className="fas fa-spinner fa-spin"
+              style={{ fontSize: '2rem', color: '#e50914' }}
+            ></i>
           </div>
         ) : topRatedSeries.length === 0 ? (
-          <p style={{ padding: '20px', textAlign: 'center', color: '#999' }}>No top-rated series available</p>
+          <p style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
+            No top-rated series available
+          </p>
         ) : (
-        <div className="series-grid">
+          <div className="series-grid">
             {topRatedSeries.map((series) => (
-            <SeriesCard
+              <SeriesCard
                 key={series.id}
                 id={series.id}
-              title={series.title}
+                title={series.title}
                 rating={series.averageRating?.toFixed(1) || '0.0'}
                 genres={getGenresArray(series.genres)}
                 year={series.releaseYear}
                 image={getPosterUrl(series.posterPath)}
-            />
-          ))}
-        </div>
+              />
+            ))}
+          </div>
         )}
       </div>
     </section>
-  )
+  );
 }
 
-export default TopRated
+export default TopRated;

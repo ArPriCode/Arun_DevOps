@@ -6,4 +6,3 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.js'],
   },
 });
-

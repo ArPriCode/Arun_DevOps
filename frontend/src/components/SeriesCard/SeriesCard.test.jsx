@@ -49,4 +49,3 @@ describe('SeriesCard', () => {
     expect(navigateMock).toHaveBeenCalled();
   });
 });
-

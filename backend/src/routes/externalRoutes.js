@@ -13,4 +13,3 @@ router.get('/series', externalController.searchSeries);
 router.get('/genres', externalController.getGenres);
 
 module.exports = router;
-

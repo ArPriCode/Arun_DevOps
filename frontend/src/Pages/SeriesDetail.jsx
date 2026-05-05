@@ -1,229 +1,234 @@
-import React, { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import Navbar from '../components/Navbar/Navbar'
-import Footer from '../components/Footer/Footer'
-import { seriesAPI, reviewsAPI, favoritesAPI } from '../services/api'
-import './CSS/SeriesDetail.css'
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import Navbar from '../components/Navbar/Navbar';
+import Footer from '../components/Footer/Footer';
+import { seriesAPI, reviewsAPI, favoritesAPI } from '../services/api';
+import './CSS/SeriesDetail.css';
 
 function SeriesDetail() {
-  const { id } = useParams()
-  const navigate = useNavigate()
-  const [series, setSeries] = useState(null)
-  const [reviews, setReviews] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [rating, setRating] = useState(5)
-  const [reviewText, setReviewText] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [editingReview, setEditingReview] = useState(null)
-  const [currentUser, setCurrentUser] = useState(null)
-  const [isFavorite, setIsFavorite] = useState(false)
-  const [favoriteId, setFavoriteId] = useState(null)
-  const [reviewsPage, setReviewsPage] = useState(1)
-  const [reviewsTotalPages, setReviewsTotalPages] = useState(1)
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [series, setSeries] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [rating, setRating] = useState(5);
+  const [reviewText, setReviewText] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingReview, setEditingReview] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favoriteId, setFavoriteId] = useState(null);
+  const [reviewsPage, setReviewsPage] = useState(1);
+  const [reviewsTotalPages, setReviewsTotalPages] = useState(1);
 
   useEffect(() => {
-    const userStr = localStorage.getItem('user')
+    const userStr = localStorage.getItem('user');
     if (userStr) {
-      setCurrentUser(JSON.parse(userStr))
+      setCurrentUser(JSON.parse(userStr));
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (id) {
-      fetchSeriesDetail()
+      fetchSeriesDetail();
     } else {
-      setError('Series ID is required')
-      setLoading(false)
+      setError('Series ID is required');
+      setLoading(false);
     }
-  }, [id])
+  }, [id]);
 
   useEffect(() => {
     if (series && currentUser) {
-      checkFavorite()
+      checkFavorite();
     }
-  }, [series, currentUser])
+  }, [series, currentUser]);
 
   const fetchSeriesDetail = async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const response = await seriesAPI.getSeriesById(id, { page: reviewsPage, limit: 10 })
-      setSeries(response.data.series)
-      setReviews(response.data.series.reviews?.items || [])
-      setReviewsTotalPages(response.data.series.reviews?.totalPages || 1)
+      const response = await seriesAPI.getSeriesById(id, { page: reviewsPage, limit: 10 });
+      setSeries(response.data.series);
+      setReviews(response.data.series.reviews?.items || []);
+      setReviewsTotalPages(response.data.series.reviews?.totalPages || 1);
     } catch (err) {
-      console.error('Failed to fetch series:', err)
-      setError(err.response?.data?.message || 'Failed to load series details')
+      console.error('Failed to fetch series:', err);
+      setError(err.response?.data?.message || 'Failed to load series details');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const fetchReviews = async (page = 1) => {
     try {
-      const response = await seriesAPI.getSeriesById(id, { page, limit: 10 })
-      setReviews(response.data.series.reviews?.items || [])
-      setReviewsTotalPages(response.data.series.reviews?.totalPages || 1)
-      setReviewsPage(page)
+      const response = await seriesAPI.getSeriesById(id, { page, limit: 10 });
+      setReviews(response.data.series.reviews?.items || []);
+      setReviewsTotalPages(response.data.series.reviews?.totalPages || 1);
+      setReviewsPage(page);
     } catch (err) {
-      console.error('Failed to fetch reviews:', err)
+      console.error('Failed to fetch reviews:', err);
     }
-  }
+  };
 
   const checkFavorite = async () => {
     try {
-      const response = await favoritesAPI.getUserFavorites()
-      const favorite = response.data.results.find(f => f.seriesId === series.id)
+      const response = await favoritesAPI.getUserFavorites();
+      const favorite = response.data.results.find((f) => f.seriesId === series.id);
       if (favorite) {
-        setIsFavorite(true)
-        setFavoriteId(favorite.id)
+        setIsFavorite(true);
+        setFavoriteId(favorite.id);
       }
     } catch (err) {
-      console.error('Failed to check favorite:', err)
+      console.error('Failed to check favorite:', err);
     }
-  }
+  };
 
   const handleSubmitReview = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!currentUser) {
-      alert('Please login to submit a review')
-      navigate('/login')
-      return
+      alert('Please login to submit a review');
+      navigate('/login');
+      return;
     }
 
     if (reviewText.length < 10) {
-      alert('Review text must be at least 10 characters')
-      return
+      alert('Review text must be at least 10 characters');
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       if (editingReview) {
         // Update existing review via PUT endpoint
         await reviewsAPI.updateReview(editingReview.id, {
           rating,
-          text: reviewText
-        })
-        setReviewText('')
-        setRating(5)
-        setEditingReview(null)
-        await fetchSeriesDetail()
-        alert('Review updated successfully!')
+          text: reviewText,
+        });
+        setReviewText('');
+        setRating(5);
+        setEditingReview(null);
+        await fetchSeriesDetail();
+        alert('Review updated successfully!');
       } else {
         // Create or update review (createReview now handles updates automatically)
         const response = await reviewsAPI.createReview({
           seriesId: parseInt(id),
           rating,
-          text: reviewText
-        })
-        setReviewText('')
-        setRating(5)
-        setEditingReview(null)
-        await fetchSeriesDetail()
+          text: reviewText,
+        });
+        setReviewText('');
+        setRating(5);
+        setEditingReview(null);
+        await fetchSeriesDetail();
         // Check response status to determine if it was created (201) or updated (200)
-        const isUpdate = response.status === 200
-        alert(isUpdate ? 'Review updated successfully!' : 'Review submitted successfully!')
+        const isUpdate = response.status === 200;
+        alert(isUpdate ? 'Review updated successfully!' : 'Review submitted successfully!');
       }
     } catch (err) {
-      console.error('Failed to submit review:', err)
-      alert(err.response?.data?.message || 'Failed to submit review')
+      console.error('Failed to submit review:', err);
+      alert(err.response?.data?.message || 'Failed to submit review');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const handleEditReview = (review) => {
-    setEditingReview(review)
-    setRating(review.rating)
-    setReviewText(review.text)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+    setEditingReview(review);
+    setRating(review.rating);
+    setReviewText(review.text);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleCancelEdit = () => {
-    setEditingReview(null)
-    setRating(5)
-    setReviewText('')
-  }
+    setEditingReview(null);
+    setRating(5);
+    setReviewText('');
+  };
 
   const handleDeleteReview = async (reviewId) => {
     if (!window.confirm('Are you sure you want to delete this review?')) {
-      return
+      return;
     }
 
     try {
-      await reviewsAPI.deleteReview(reviewId)
-      await fetchSeriesDetail()
-      alert('Review deleted successfully!')
+      await reviewsAPI.deleteReview(reviewId);
+      await fetchSeriesDetail();
+      alert('Review deleted successfully!');
     } catch (err) {
-      console.error('Failed to delete review:', err)
-      alert(err.response?.data?.message || 'Failed to delete review')
+      console.error('Failed to delete review:', err);
+      alert(err.response?.data?.message || 'Failed to delete review');
     }
-  }
+  };
 
   const handleToggleFavorite = async () => {
     if (!currentUser) {
-      alert('Please login to add to favorites')
-      navigate('/login')
-      return
+      alert('Please login to add to favorites');
+      navigate('/login');
+      return;
     }
 
     try {
       if (isFavorite) {
-        await favoritesAPI.removeFavorite(favoriteId)
-        setIsFavorite(false)
-        setFavoriteId(null)
-        alert('Removed from favorites')
+        await favoritesAPI.removeFavorite(favoriteId);
+        setIsFavorite(false);
+        setFavoriteId(null);
+        alert('Removed from favorites');
       } else {
-        const response = await favoritesAPI.addFavorite({ seriesId: parseInt(id) })
-        setIsFavorite(true)
-        setFavoriteId(response.data.id)
-        alert('Added to favorites')
+        const response = await favoritesAPI.addFavorite({ seriesId: parseInt(id) });
+        setIsFavorite(true);
+        setFavoriteId(response.data.id);
+        alert('Added to favorites');
       }
     } catch (err) {
-      console.error('Failed to toggle favorite:', err)
-      alert(err.response?.data?.message || 'Failed to update favorites')
+      console.error('Failed to toggle favorite:', err);
+      alert(err.response?.data?.message || 'Failed to update favorites');
     }
-  }
+  };
 
   const getBackdropUrl = (backdropPath) => {
-    if (!backdropPath) return null
+    if (!backdropPath) return null;
     return backdropPath.startsWith('http')
       ? backdropPath
-      : `https://image.tmdb.org/t/p/w1280${backdropPath}`
-  }
+      : `https://image.tmdb.org/t/p/w1280${backdropPath}`;
+  };
 
   const getGenresArray = (genres) => {
-    if (Array.isArray(genres)) return genres
+    if (Array.isArray(genres)) return genres;
     if (typeof genres === 'string') {
       try {
-        return JSON.parse(genres)
+        return JSON.parse(genres);
       } catch {
-        return [genres]
+        return [genres];
       }
     }
-    return []
-  }
+    return [];
+  };
 
   const formatDate = (dateString) => {
-    if (!dateString) return ''
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffTime = Math.abs(now - date)
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    
-    if (diffDays === 0) return 'Today'
-    if (diffDays === 1) return 'Yesterday'
-    if (diffDays < 7) return `${diffDays} days ago`
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
-    if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`
-    return `${Math.floor(diffDays / 365)} years ago`
-  }
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+    if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+    return `${Math.floor(diffDays / 365)} years ago`;
+  };
 
   const getUserInitials = (name) => {
-    if (!name) return 'U'
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-  }
+    if (!name) return 'U';
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   if (loading) {
     return (
@@ -235,7 +240,7 @@ function SeriesDetail() {
         </div>
         <Footer />
       </div>
-    )
+    );
   }
 
   if (error || !series) {
@@ -244,23 +249,26 @@ function SeriesDetail() {
         <Navbar />
         <div style={{ padding: '40px', textAlign: 'center', color: 'red' }}>
           <p>{error || 'Series not found'}</p>
-          <button onClick={() => navigate('/series')} style={{ marginTop: '20px', padding: '10px 20px' }}>
+          <button
+            onClick={() => navigate('/series')}
+            style={{ marginTop: '20px', padding: '10px 20px' }}
+          >
             Back to Series
           </button>
         </div>
         <Footer />
       </div>
-    )
+    );
   }
 
   const backdropStyle = series.backdropPath
     ? { backgroundImage: `url(${getBackdropUrl(series.backdropPath)})` }
-    : {}
+    : {};
 
   return (
     <div className="series-detail-page">
       <Navbar />
-      
+
       {/* Banner Section */}
       <section className="series-banner-section">
         <div className="banner-background" style={backdropStyle}></div>
@@ -285,7 +293,10 @@ function SeriesDetail() {
             </div>
             <div className="series-genre-tags">
               {getGenresArray(series.genres).map((genre, idx) => (
-                <span key={idx} className={`genre-tag-detail genre-${genre.toLowerCase().replace(/\s+/g, '-')}`}>
+                <span
+                  key={idx}
+                  className={`genre-tag-detail genre-${genre.toLowerCase().replace(/\s+/g, '-')}`}
+                >
                   {genre}
                 </span>
               ))}
@@ -303,9 +314,7 @@ function SeriesDetail() {
               {/* Synopsis */}
               <div className="detail-card">
                 <h2 className="detail-card-title">Synopsis</h2>
-                <p className="synopsis-text">
-                  {series.overview || 'No synopsis available.'}
-                </p>
+                <p className="synopsis-text">{series.overview || 'No synopsis available.'}</p>
               </div>
 
               {/* Write a Review */}
@@ -326,17 +335,19 @@ function SeriesDetail() {
                             onMouseEnter={() => {
                               // Optional: Add hover effect if desired
                             }}
-                            style={{ 
-                              cursor: 'pointer', 
-                              fontSize: '1.5rem', 
+                            style={{
+                              cursor: 'pointer',
+                              fontSize: '1.5rem',
                               marginRight: '5px',
                               color: star <= rating ? '#ffc107' : '#ccc',
-                              transition: 'color 0.2s ease'
+                              transition: 'color 0.2s ease',
                             }}
                             title={`${star}/10`}
                           ></i>
                         ))}
-                        <span style={{ marginLeft: '10px', fontSize: '1.2rem', fontWeight: 'bold' }}>
+                        <span
+                          style={{ marginLeft: '10px', fontSize: '1.2rem', fontWeight: 'bold' }}
+                        >
                           {rating}/10
                         </span>
                       </div>
@@ -355,10 +366,19 @@ function SeriesDetail() {
                     </div>
                     <div style={{ display: 'flex', gap: '10px' }}>
                       <button type="submit" className="submit-review-btn" disabled={isSubmitting}>
-                        {isSubmitting ? 'SUBMITTING...' : editingReview ? 'UPDATE REVIEW' : 'SUBMIT REVIEW'}
+                        {isSubmitting
+                          ? 'SUBMITTING...'
+                          : editingReview
+                            ? 'UPDATE REVIEW'
+                            : 'SUBMIT REVIEW'}
                       </button>
                       {editingReview && (
-                        <button type="button" className="submit-review-btn" onClick={handleCancelEdit} style={{ backgroundColor: '#666' }}>
+                        <button
+                          type="button"
+                          className="submit-review-btn"
+                          onClick={handleCancelEdit}
+                          style={{ backgroundColor: '#666' }}
+                        >
                           CANCEL
                         </button>
                       )}
@@ -381,12 +401,12 @@ function SeriesDetail() {
                     {reviews.map((review) => (
                       <div key={review.id} className="review-item">
                         <div className="review-header">
-                          <div className="review-avatar">
-                            {getUserInitials(review.user?.name)}
-                          </div>
+                          <div className="review-avatar">{getUserInitials(review.user?.name)}</div>
                           <div className="review-info">
                             <div className="review-meta">
-                              <span className="review-author">{review.user?.name || 'Anonymous'}</span>
+                              <span className="review-author">
+                                {review.user?.name || 'Anonymous'}
+                              </span>
                               <span className="review-date">{formatDate(review.createdAt)}</span>
                             </div>
                             <div className="review-rating">
@@ -394,10 +414,10 @@ function SeriesDetail() {
                                 <i
                                   key={i}
                                   className={i < review.rating ? 'fas fa-star' : 'far fa-star'}
-                                  style={{ 
-                                    fontSize: '0.9rem', 
+                                  style={{
+                                    fontSize: '0.9rem',
                                     color: i < review.rating ? '#ffc107' : '#ccc',
-                                    marginRight: '2px'
+                                    marginRight: '2px',
                                   }}
                                 ></i>
                               ))}
@@ -457,18 +477,24 @@ function SeriesDetail() {
               {/* Action Buttons */}
               <div className="detail-card">
                 <button
-                  className={isFavorite ? "watchlist-btn" : "watchlist-btn"}
+                  className={isFavorite ? 'watchlist-btn' : 'watchlist-btn'}
                   onClick={handleToggleFavorite}
-                  style={{ 
+                  style={{
                     backgroundColor: isFavorite ? '#e50914' : '#333',
                     width: '100%',
-                    marginBottom: '10px'
+                    marginBottom: '10px',
                   }}
                 >
                   <i className={`fas ${isFavorite ? 'fa-heart' : 'fa-plus'}`}></i>
                   {isFavorite ? 'REMOVE FROM FAVORITES' : 'ADD TO FAVORITES'}
                 </button>
-                <button className="share-btn" onClick={() => navigator.share?.({ title: series.title, url: window.location.href }) || navigator.clipboard.writeText(window.location.href)}>
+                <button
+                  className="share-btn"
+                  onClick={() =>
+                    navigator.share?.({ title: series.title, url: window.location.href }) ||
+                    navigator.clipboard.writeText(window.location.href)
+                  }
+                >
                   <i className="fas fa-share-alt"></i>
                   SHARE
                 </button>
@@ -480,7 +506,7 @@ function SeriesDetail() {
 
       <Footer />
     </div>
-  )
+  );
 }
 
-export default SeriesDetail
+export default SeriesDetail;

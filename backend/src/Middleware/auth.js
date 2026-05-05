@@ -3,13 +3,13 @@ const jwt = require('jsonwebtoken');
 // Auth middleware: verify JWT and attach user payload to req.user
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
-  
+
   if (!authHeader) {
     return res.status(401).json({ message: 'No token provided' });
   }
 
   const [prefix, token] = authHeader.split(' ');
-  
+
   if (prefix !== 'Bearer' || !token) {
     return res.status(401).json({ message: 'Invalid token format' });
   }
@@ -42,4 +42,3 @@ const requireRole = (role) => {
 };
 
 module.exports = { verifyToken, requireRole };
-

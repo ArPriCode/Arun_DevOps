@@ -21,17 +21,29 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
-    linear-gradient(to bottom right, rgba(88, 28, 135, 0.5), rgba(0, 0, 0, 0.8), rgba(30, 58, 138, 0.5)),
-    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect fill="%231a0000" width="1200" height="800"/><rect fill="%23330000" x="600" y="0" width="600" height="800"/></svg>') center/cover;
+  background:
+    linear-gradient(
+      to bottom right,
+      rgba(88, 28, 135, 0.5),
+      rgba(0, 0, 0, 0.8),
+      rgba(30, 58, 138, 0.5)
+    ),
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect fill="%231a0000" width="1200" height="800"/><rect fill="%23330000" x="600" y="0" width="600" height="800"/></svg>')
+      center/cover;
   filter: blur(2px);
   z-index: 1;
 }
 
 .signup-bg {
-  background: 
-    linear-gradient(to bottom right, rgba(30, 58, 138, 0.5), rgba(0, 0, 0, 0.8), rgba(88, 28, 135, 0.5)),
-    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect fill="%231a0000" width="1200" height="800"/><rect fill="%23330000" x="600" y="0" width="600" height="800"/></svg>') center/cover;
+  background:
+    linear-gradient(
+      to bottom right,
+      rgba(30, 58, 138, 0.5),
+      rgba(0, 0, 0, 0.8),
+      rgba(88, 28, 135, 0.5)
+    ),
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect fill="%231a0000" width="1200" height="800"/><rect fill="%23330000" x="600" y="0" width="600" height="800"/></svg>')
+      center/cover;
 }
 
 .auth-container {
@@ -224,4 +236,3 @@
     gap: 12px;
   }
 }
-

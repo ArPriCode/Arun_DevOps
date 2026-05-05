@@ -22,13 +22,11 @@ describe('Auth Endpoints', () => {
 
   describe('POST /api/auth/signup', () => {
     it('should create a new user and return token', async () => {
-      const response = await request(app)
-        .post('/api/auth/signup')
-        .send({
-          name: 'Test User',
-          email: 'test@example.com',
-          password: 'password123'
-        });
+      const response = await request(app).post('/api/auth/signup').send({
+        name: 'Test User',
+        email: 'test@example.com',
+        password: 'password123',
+      });
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('token');
@@ -38,29 +36,28 @@ describe('Auth Endpoints', () => {
       expect(response.body.user).not.toHaveProperty('password');
 
       // Verify token is valid
-      const decoded = jwt.verify(response.body.token, process.env.JWT_SECRET || process.env.SECRET_KEY);
+      const decoded = jwt.verify(
+        response.body.token,
+        process.env.JWT_SECRET || process.env.SECRET_KEY,
+      );
       expect(decoded.email).toBe('test@example.com');
     });
 
     it('should return error if email already exists', async () => {
-      const response = await request(app)
-        .post('/api/auth/signup')
-        .send({
-          name: 'Another User',
-          email: 'test@example.com',
-          password: 'password123'
-        });
+      const response = await request(app).post('/api/auth/signup').send({
+        name: 'Another User',
+        email: 'test@example.com',
+        password: 'password123',
+      });
 
       expect(response.status).toBe(409);
       expect(response.body.message).toContain('already exists');
     });
 
     it('should return error if fields are missing', async () => {
-      const response = await request(app)
-        .post('/api/auth/signup')
-        .send({
-          name: 'Test User'
-        });
+      const response = await request(app).post('/api/auth/signup').send({
+        name: 'Test User',
+      });
 
       expect(response.status).toBe(400);
     });
@@ -74,8 +71,8 @@ describe('Auth Endpoints', () => {
         data: {
           name: 'Login Test User',
           email: 'logintest@example.com',
-          password: hashedPassword
-        }
+          password: hashedPassword,
+        },
       });
     });
 
@@ -87,12 +84,10 @@ describe('Auth Endpoints', () => {
     });
 
     it('should login with correct credentials', async () => {
-      const response = await request(app)
-        .post('/api/auth/login')
-        .send({
-          email: 'logintest@example.com',
-          password: 'password123'
-        });
+      const response = await request(app).post('/api/auth/login').send({
+        email: 'logintest@example.com',
+        password: 'password123',
+      });
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('token');
@@ -101,28 +96,23 @@ describe('Auth Endpoints', () => {
     });
 
     it('should return error with incorrect password', async () => {
-      const response = await request(app)
-        .post('/api/auth/login')
-        .send({
-          email: 'logintest@example.com',
-          password: 'wrongpassword'
-        });
+      const response = await request(app).post('/api/auth/login').send({
+        email: 'logintest@example.com',
+        password: 'wrongpassword',
+      });
 
       expect(response.status).toBe(401);
       expect(response.body.message).toContain('Invalid');
     });
 
     it('should return error if user does not exist', async () => {
-      const response = await request(app)
-        .post('/api/auth/login')
-        .send({
-          email: 'nonexistent@example.com',
-          password: 'password123'
-        });
+      const response = await request(app).post('/api/auth/login').send({
+        email: 'nonexistent@example.com',
+        password: 'password123',
+      });
 
       expect(response.status).toBe(401);
       expect(response.body.message).toContain('Invalid');
     });
   });
 });
-

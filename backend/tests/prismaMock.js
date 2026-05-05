@@ -184,4 +184,3 @@ class PrismaClient {
 }
 
 module.exports = { PrismaClient };
-

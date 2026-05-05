@@ -1,51 +1,51 @@
-import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import SeriesCard from '../SeriesCard/SeriesCard'
-import { seriesAPI } from '../../services/api'
-import './TrendingNow.css'
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import SeriesCard from '../SeriesCard/SeriesCard';
+import { seriesAPI } from '../../services/api';
+import './TrendingNow.css';
 
 function TrendingNow() {
-  const navigate = useNavigate()
-  const [trendingSeries, setTrendingSeries] = useState([])
-  const [loading, setLoading] = useState(true)
+  const navigate = useNavigate();
+  const [trendingSeries, setTrendingSeries] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchTrending = async () => {
       try {
-        const response = await seriesAPI.getSeries({ filter: 'trending', page: 1, limit: 5 })
-        setTrendingSeries(response.data.results || [])
+        const response = await seriesAPI.getSeries({ filter: 'trending', page: 1, limit: 5 });
+        setTrendingSeries(response.data.results || []);
       } catch (err) {
-        console.error('Failed to fetch trending series:', err)
-        setTrendingSeries([])
+        console.error('Failed to fetch trending series:', err);
+        setTrendingSeries([]);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchTrending()
-  }, [])
+    };
+    fetchTrending();
+  }, []);
 
   const handleViewAll = () => {
-    navigate('/series?filter=trending')
-  }
+    navigate('/series?filter=trending');
+  };
 
   const getPosterUrl = (posterPath) => {
-    if (!posterPath) return null
-    return posterPath.startsWith('http') 
-      ? posterPath 
-      : `https://image.tmdb.org/t/p/w500${posterPath}`
-  }
+    if (!posterPath) return null;
+    return posterPath.startsWith('http')
+      ? posterPath
+      : `https://image.tmdb.org/t/p/w500${posterPath}`;
+  };
 
   const getGenresArray = (genres) => {
-    if (Array.isArray(genres)) return genres
+    if (Array.isArray(genres)) return genres;
     if (typeof genres === 'string') {
       try {
-        return JSON.parse(genres)
+        return JSON.parse(genres);
       } catch {
-        return [genres]
+        return [genres];
       }
     }
-    return []
-  }
+    return [];
+  };
 
   return (
     <section className="trending-section">
@@ -58,28 +58,33 @@ function TrendingNow() {
         </div>
         {loading ? (
           <div style={{ padding: '40px', textAlign: 'center' }}>
-            <i className="fas fa-spinner fa-spin" style={{ fontSize: '2rem', color: '#e50914' }}></i>
+            <i
+              className="fas fa-spinner fa-spin"
+              style={{ fontSize: '2rem', color: '#e50914' }}
+            ></i>
           </div>
         ) : trendingSeries.length === 0 ? (
-          <p style={{ padding: '20px', textAlign: 'center', color: '#999' }}>No trending series available</p>
+          <p style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
+            No trending series available
+          </p>
         ) : (
-        <div className="series-grid">
+          <div className="series-grid">
             {trendingSeries.map((series) => (
-            <SeriesCard
+              <SeriesCard
                 key={series.id}
                 id={series.id}
-              title={series.title}
+                title={series.title}
                 rating={series.averageRating?.toFixed(1) || '0.0'}
                 genres={getGenresArray(series.genres)}
                 year={series.releaseYear}
                 image={getPosterUrl(series.posterPath)}
-            />
-          ))}
-        </div>
+              />
+            ))}
+          </div>
         )}
       </div>
     </section>
-  )
+  );
 }
 
-export default TrendingNow
+export default TrendingNow;

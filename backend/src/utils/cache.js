@@ -6,13 +6,13 @@ class Cache {
   }
 
   set(key, value, ttl = this.defaultTTL) {
-    const expiresAt = Date.now() + (ttl * 1000);
+    const expiresAt = Date.now() + ttl * 1000;
     this.cache.set(key, { value, expiresAt });
   }
 
   get(key) {
     const item = this.cache.get(key);
-    
+
     if (!item) {
       return null;
     }
@@ -88,4 +88,3 @@ class RedisCache {
 */
 
 module.exports = cache;
-

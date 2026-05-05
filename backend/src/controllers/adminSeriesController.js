@@ -24,7 +24,10 @@ const adminSeriesController = {
         // Accept either array or comma-separated string
         let genresArray = genres;
         if (typeof genres === 'string') {
-          genresArray = genres.split(',').map(g => g.trim()).filter(Boolean);
+          genresArray = genres
+            .split(',')
+            .map((g) => g.trim())
+            .filter(Boolean);
         }
         data.genres = genresArray;
       }
@@ -63,7 +66,10 @@ const adminSeriesController = {
       if (genres !== undefined) {
         let genresArray = genres;
         if (typeof genres === 'string') {
-          genresArray = genres.split(',').map(g => g.trim()).filter(Boolean);
+          genresArray = genres
+            .split(',')
+            .map((g) => g.trim())
+            .filter(Boolean);
         }
         data.genres = genresArray;
       }
@@ -109,5 +115,3 @@ const adminSeriesController = {
 };
 
 module.exports = adminSeriesController;
-
-

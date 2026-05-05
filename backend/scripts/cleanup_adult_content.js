@@ -17,8 +17,8 @@ async function main() {
         id: true,
         title: true,
         overview: true,
-        externalId: true
-      }
+        externalId: true,
+      },
     });
 
     console.log(`📊 Found ${allSeries.length} series in database`);
@@ -27,9 +27,10 @@ async function main() {
     for (const series of allSeries) {
       const overview = (series.overview || '').toLowerCase();
       const title = (series.title || '').toLowerCase();
-      
-      const hasAdultKeyword = ADULT_KEYWORDS.some(keyword => 
-        overview.includes(keyword.toLowerCase()) || title.includes(keyword.toLowerCase())
+
+      const hasAdultKeyword = ADULT_KEYWORDS.some(
+        (keyword) =>
+          overview.includes(keyword.toLowerCase()) || title.includes(keyword.toLowerCase()),
       );
 
       if (hasAdultKeyword) {
@@ -40,15 +41,15 @@ async function main() {
 
     if (toDelete.length > 0) {
       console.log(`\n🗑️  Deleting ${toDelete.length} series with adult keywords...`);
-      
+
       // Soft delete by setting deletedAt
       const result = await prisma.series.updateMany({
         where: {
-          id: { in: toDelete }
+          id: { in: toDelete },
         },
         data: {
-          deletedAt: new Date()
-        }
+          deletedAt: new Date(),
+        },
       });
 
       console.log(`✅ Soft-deleted ${result.count} series`);
@@ -60,7 +61,6 @@ async function main() {
     console.log(`   Total series checked: ${allSeries.length}`);
     console.log(`   Adult content found: ${toDelete.length}`);
     console.log(`   Clean series remaining: ${allSeries.length - toDelete.length}`);
-
   } catch (error) {
     console.error('❌ Error during cleanup:', error);
     process.exitCode = 1;
@@ -75,4 +75,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-

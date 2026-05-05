@@ -4,15 +4,7 @@ const cache = require('../utils/cache');
 const TVMAZE_BASE_URL = 'https://api.tvmaze.com';
 
 // Blocked adult/erotic keywords
-const BLOCKED_KEYWORDS = [
-  'adult',
-  '18+',
-  'erotic',
-  'xxx',
-  'bold',
-  'sensual',
-  'sexual',
-];
+const BLOCKED_KEYWORDS = ['adult', '18+', 'erotic', 'xxx', 'bold', 'sensual', 'sexual'];
 
 // Allowed OTT platforms (webChannel/network names)
 const ALLOWED_PLATFORMS = [
@@ -31,12 +23,14 @@ const ALLOWED_PLATFORMS = [
   'jiocinema',
 ];
 
-const normalize = (val) =>
-  (val || '').toString().toLowerCase().trim();
+const normalize = (val) => (val || '').toString().toLowerCase().trim();
 
 const stripHtml = (html) => {
   if (!html) return '';
-  return html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  return html
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 };
 
 const hasBlockedKeyword = (text) => {
@@ -74,9 +68,7 @@ const isCleanShow = (show) => {
 };
 
 const mapShowToSeries = (show) => {
-  const premieredYear = show.premiered
-    ? parseInt(String(show.premiered).slice(0, 4), 10)
-    : null;
+  const premieredYear = show.premiered ? parseInt(String(show.premiered).slice(0, 4), 10) : null;
 
   return {
     externalId: String(show.id),
@@ -111,9 +103,7 @@ const tvmazeService = {
       headers: { Accept: 'application/json' },
     });
 
-    const shows = Array.isArray(data)
-      ? data.map((item) => item.show).filter(Boolean)
-      : [];
+    const shows = Array.isArray(data) ? data.map((item) => item.show).filter(Boolean) : [];
 
     const filtered = shows.filter(isCleanShow);
     const mapped = filtered.map(mapShowToSeries);
@@ -169,5 +159,3 @@ const tvmazeService = {
 };
 
 module.exports = tvmazeService;
-
-

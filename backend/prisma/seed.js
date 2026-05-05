@@ -22,24 +22,24 @@ async function main() {
     data: {
       name: 'John Doe',
       email: 'john@example.com',
-      password: hashedPassword
-    }
+      password: hashedPassword,
+    },
   });
 
   const user2 = await prisma.user.create({
     data: {
       name: 'Jane Smith',
       email: 'jane@example.com',
-      password: hashedPassword
-    }
+      password: hashedPassword,
+    },
   });
 
   const user3 = await prisma.user.create({
     data: {
       name: 'Mike Johnson',
       email: 'mike@example.com',
-      password: hashedPassword
-    }
+      password: hashedPassword,
+    },
   });
 
   console.log(`Created ${3} users`);
@@ -51,14 +51,15 @@ async function main() {
     data: {
       title: 'Breaking Bad',
       externalId: '1396',
-      overview: 'A high school chemistry teacher turned methamphetamine manufacturer partners with a former student.',
+      overview:
+        'A high school chemistry teacher turned methamphetamine manufacturer partners with a former student.',
       posterPath: '/ggFHVNu6YYI5L9pCfOacjizRGt.jpg',
       backdropPath: '/tsRy63Mu5cu8etL1X7ZLyf7UP1M.jpg',
       genres: JSON.stringify(['Crime', 'Thriller']),
       releaseYear: 2008,
       averageRating: 9.5,
-      reviewsCount: 2
-    }
+      reviewsCount: 2,
+    },
   });
 
   const series2 = await prisma.series.create({
@@ -71,36 +72,37 @@ async function main() {
       genres: JSON.stringify(['Fantasy', 'Adventure']),
       releaseYear: 2011,
       averageRating: 8.5,
-      reviewsCount: 2
-    }
+      reviewsCount: 2,
+    },
   });
 
   const series3 = await prisma.series.create({
     data: {
       title: 'Stranger Things',
       externalId: '66732',
-      overview: 'When a young boy vanishes, a small town uncovers a mystery involving secret experiments.',
+      overview:
+        'When a young boy vanishes, a small town uncovers a mystery involving secret experiments.',
       posterPath: '/49WJfeN0moxb9IPfGn8AIqMGskD.jpg',
       backdropPath: '/56v2KjBlU4XaOv9rVYEQypROD7P.jpg',
       genres: JSON.stringify(['Sci-Fi', 'Horror', 'Mystery']),
       releaseYear: 2016,
       averageRating: 8.7,
-      reviewsCount: 1
-    }
+      reviewsCount: 1,
+    },
   });
 
   const series4 = await prisma.series.create({
     data: {
       title: 'The Crown',
       externalId: '65494',
-      overview: 'Follows the political rivalries and romance of Queen Elizabeth II\'s reign.',
+      overview: "Follows the political rivalries and romance of Queen Elizabeth II's reign.",
       posterPath: '/1M876KPjulVwppEpldhdc8V4o68.jpg',
       backdropPath: '/84XPpjGvxNyExjSuLQe0SzioErt.jpg',
       genres: JSON.stringify(['History']),
       releaseYear: 2016,
       averageRating: 0,
-      reviewsCount: 0
-    }
+      reviewsCount: 0,
+    },
   });
 
   const series5 = await prisma.series.create({
@@ -113,8 +115,8 @@ async function main() {
       genres: JSON.stringify(['Comedy']),
       releaseYear: 2005,
       averageRating: 0,
-      reviewsCount: 0
-    }
+      reviewsCount: 0,
+    },
   });
 
   console.log(`Created ${5} series`);
@@ -127,8 +129,8 @@ async function main() {
       userId: user1.id,
       seriesId: series1.id,
       rating: 10,
-      text: 'Absolutely phenomenal! The best TV series I have ever watched. The character development is incredible and the plot is mind-blowing.'
-    }
+      text: 'Absolutely phenomenal! The best TV series I have ever watched. The character development is incredible and the plot is mind-blowing.',
+    },
   });
 
   await prisma.review.create({
@@ -136,8 +138,8 @@ async function main() {
       userId: user2.id,
       seriesId: series1.id,
       rating: 9,
-      text: 'Amazing show with great acting and writing. One of the best dramas ever made.'
-    }
+      text: 'Amazing show with great acting and writing. One of the best dramas ever made.',
+    },
   });
 
   await prisma.review.create({
@@ -145,8 +147,8 @@ async function main() {
       userId: user1.id,
       seriesId: series2.id,
       rating: 9,
-      text: 'Epic fantasy series with complex characters and stunning visuals. The first few seasons are masterpieces.'
-    }
+      text: 'Epic fantasy series with complex characters and stunning visuals. The first few seasons are masterpieces.',
+    },
   });
 
   await prisma.review.create({
@@ -154,8 +156,8 @@ async function main() {
       userId: user3.id,
       seriesId: series2.id,
       rating: 8,
-      text: 'Great show overall, though the final season was disappointing. Still worth watching for the early seasons.'
-    }
+      text: 'Great show overall, though the final season was disappointing. Still worth watching for the early seasons.',
+    },
   });
 
   await prisma.review.create({
@@ -163,8 +165,8 @@ async function main() {
       userId: user2.id,
       seriesId: series3.id,
       rating: 8,
-      text: 'Loved the nostalgia and sci-fi elements. Great cast and compelling storyline.'
-    }
+      text: 'Loved the nostalgia and sci-fi elements. Great cast and compelling storyline.',
+    },
   });
 
   console.log(`Created ${5} reviews`);
@@ -175,29 +177,29 @@ async function main() {
   await prisma.favorite.create({
     data: {
       userId: user1.id,
-      seriesId: series1.id
-    }
+      seriesId: series1.id,
+    },
   });
 
   await prisma.favorite.create({
     data: {
       userId: user1.id,
-      seriesId: series3.id
-    }
+      seriesId: series3.id,
+    },
   });
 
   await prisma.favorite.create({
     data: {
       userId: user2.id,
-      seriesId: series2.id
-    }
+      seriesId: series2.id,
+    },
   });
 
   await prisma.favorite.create({
     data: {
       userId: user3.id,
-      seriesId: series1.id
-    }
+      seriesId: series1.id,
+    },
   });
 
   console.log(`Created ${4} favorites`);
@@ -217,4 +219,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-

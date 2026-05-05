@@ -11,4 +11,3 @@ router.get('/reviews', verifyToken, userController.getUserReviews);
 router.get('/favorites', verifyToken, favoritesController.getUserFavorites);
 
 module.exports = router;
-

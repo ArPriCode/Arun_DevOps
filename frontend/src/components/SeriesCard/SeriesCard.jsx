@@ -1,27 +1,23 @@
-import React from 'react'
-import { useNavigate } from 'react-router-dom'
-import './SeriesCard.css'
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import './SeriesCard.css';
 
 function SeriesCard({ id, title, rating, genres, year, seasons, image }) {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleClick = () => {
     if (id) {
-      navigate(`/series-detail/${id}`)
+      navigate(`/series-detail/${id}`);
     } else {
-    navigate('/series-detail')
+      navigate('/series-detail');
     }
-  }
+  };
 
   return (
     <div className="series-card" onClick={handleClick}>
       <div className="poster-container">
         <div className="poster-image">
-          {image ? (
-            <img src={image} alt={title} />
-          ) : (
-            <div className="placeholder-poster"></div>
-          )}
+          {image ? <img src={image} alt={title} /> : <div className="placeholder-poster"></div>}
         </div>
         <div className="rating-badge">
           <i className="fas fa-star"></i>
@@ -37,11 +33,12 @@ function SeriesCard({ id, title, rating, genres, year, seasons, image }) {
         )}
       </div>
       {year && seasons && (
-        <p className="series-meta">{year} • {seasons}</p>
+        <p className="series-meta">
+          {year} • {seasons}
+        </p>
       )}
     </div>
-  )
+  );
 }
 
-export default SeriesCard
-
+export default SeriesCard;

@@ -25,15 +25,13 @@ describe('Reviews Endpoints', () => {
       data: {
         name: 'Review Test User',
         email: 'reviewtest@example.com',
-        password: hashedPassword
-      }
+        password: hashedPassword,
+      },
     });
 
-    authToken = jwt.sign(
-      { id: testUser.id, email: testUser.email },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    authToken = jwt.sign({ id: testUser.id, email: testUser.email }, JWT_SECRET, {
+      expiresIn: '7d',
+    });
 
     // Create test series (non-Drama genre)
     testSeries = await prisma.series.create({
@@ -43,8 +41,8 @@ describe('Reviews Endpoints', () => {
         genres: JSON.stringify(['Action']),
         releaseYear: 2023,
         averageRating: 0,
-        reviewsCount: 0
-      }
+        reviewsCount: 0,
+      },
     });
   });
 
@@ -64,7 +62,7 @@ describe('Reviews Endpoints', () => {
         .send({
           seriesId: testSeries.id,
           rating: 9,
-          text: 'This is an excellent series! Highly recommended.'
+          text: 'This is an excellent series! Highly recommended.',
         });
 
       expect(response.status).toBe(201);
@@ -76,20 +74,18 @@ describe('Reviews Endpoints', () => {
 
       // Verify series aggregates updated
       const updatedSeries = await prisma.series.findUnique({
-        where: { id: testSeries.id }
+        where: { id: testSeries.id },
       });
       expect(updatedSeries.averageRating).toBe(9);
       expect(updatedSeries.reviewsCount).toBe(1);
     });
 
     it('should return error if not authenticated', async () => {
-      const response = await request(app)
-        .post('/api/reviews')
-        .send({
-          seriesId: testSeries.id,
-          rating: 8,
-          text: 'Test review'
-        });
+      const response = await request(app).post('/api/reviews').send({
+        seriesId: testSeries.id,
+        rating: 8,
+        text: 'Test review',
+      });
 
       expect(response.status).toBe(401);
     });
@@ -101,7 +97,7 @@ describe('Reviews Endpoints', () => {
         .send({
           seriesId: testSeries.id,
           rating: 11,
-          text: 'Invalid rating'
+          text: 'Invalid rating',
         });
 
       expect(response.status).toBe(400);
@@ -120,14 +116,14 @@ describe('Reviews Endpoints', () => {
           userId: testUser.id,
           seriesId: testSeries.id,
           rating: 7,
-          text: 'Initial review'
-        }
+          text: 'Initial review',
+        },
       });
 
       // Reset series aggregates
       await prisma.series.update({
         where: { id: testSeries.id },
-        data: { averageRating: 7, reviewsCount: 1 }
+        data: { averageRating: 7, reviewsCount: 1 },
       });
     });
 
@@ -137,7 +133,7 @@ describe('Reviews Endpoints', () => {
       }
       await prisma.series.update({
         where: { id: testSeries.id },
-        data: { averageRating: 0, reviewsCount: 0 }
+        data: { averageRating: 0, reviewsCount: 0 },
       });
     });
 
@@ -147,7 +143,7 @@ describe('Reviews Endpoints', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .send({
           rating: 10,
-          text: 'Updated review - it\'s amazing!'
+          text: "Updated review - it's amazing!",
         });
 
       expect(response.status).toBe(200);
@@ -155,7 +151,7 @@ describe('Reviews Endpoints', () => {
 
       // Verify aggregates updated
       const updatedSeries = await prisma.series.findUnique({
-        where: { id: testSeries.id }
+        where: { id: testSeries.id },
       });
       expect(updatedSeries.averageRating).toBe(10);
     });
@@ -173,13 +169,13 @@ describe('Reviews Endpoints', () => {
           userId: testUser.id,
           seriesId: testSeries.id,
           rating: 8,
-          text: 'Review to be deleted'
-        }
+          text: 'Review to be deleted',
+        },
       });
 
       await prisma.series.update({
         where: { id: testSeries.id },
-        data: { averageRating: 8, reviewsCount: 1 }
+        data: { averageRating: 8, reviewsCount: 1 },
       });
     });
 
@@ -192,13 +188,13 @@ describe('Reviews Endpoints', () => {
 
       // Verify review deleted
       const deletedReview = await prisma.review.findUnique({
-        where: { id: review.id }
+        where: { id: review.id },
       });
       expect(deletedReview).toBeNull();
 
       // Verify aggregates reset
       const updatedSeries = await prisma.series.findUnique({
-        where: { id: testSeries.id }
+        where: { id: testSeries.id },
       });
       expect(updatedSeries.averageRating).toBe(0);
       expect(updatedSeries.reviewsCount).toBe(0);
@@ -216,16 +212,16 @@ describe('Reviews Endpoints', () => {
           userId: testUser.id,
           seriesId: testSeries.id,
           rating: 8,
-          text: 'Good series'
-        }
+          text: 'Good series',
+        },
       });
 
       const anotherUser = await prisma.user.create({
         data: {
           name: 'Another User',
           email: 'another@example.com',
-          password: await bcrypt.hash('password', 10)
-        }
+          password: await bcrypt.hash('password', 10),
+        },
       });
 
       const review2 = await prisma.review.create({
@@ -233,27 +229,27 @@ describe('Reviews Endpoints', () => {
           userId: anotherUser.id,
           seriesId: testSeries.id,
           rating: 10,
-          text: 'Perfect series'
-        }
+          text: 'Perfect series',
+        },
       });
 
       // Manually recalculate to test
       const aggregates = await prisma.review.aggregate({
         where: { seriesId: testSeries.id },
         _avg: { rating: true },
-        _count: true
+        _count: true,
       });
 
       await prisma.series.update({
         where: { id: testSeries.id },
         data: {
           averageRating: aggregates._avg.rating || 0,
-          reviewsCount: aggregates._count || 0
-        }
+          reviewsCount: aggregates._count || 0,
+        },
       });
 
       const updatedSeries = await prisma.series.findUnique({
-        where: { id: testSeries.id }
+        where: { id: testSeries.id },
       });
 
       expect(updatedSeries.averageRating).toBe(9); // (8 + 10) / 2
@@ -264,9 +260,8 @@ describe('Reviews Endpoints', () => {
       await prisma.user.delete({ where: { id: anotherUser.id } });
       await prisma.series.update({
         where: { id: testSeries.id },
-        data: { averageRating: 0, reviewsCount: 0 }
+        data: { averageRating: 0, reviewsCount: 0 },
       });
     });
   });
 });
-

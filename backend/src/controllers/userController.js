@@ -16,11 +16,11 @@ const userController = {
             id: true,
             name: true,
             email: true,
-            createdAt: true
-          }
+            createdAt: true,
+          },
         }),
         prisma.review.count({ where: { userId } }),
-        prisma.favorite.count({ where: { userId } })
+        prisma.favorite.count({ where: { userId } }),
       ]);
 
       if (!user) {
@@ -31,8 +31,8 @@ const userController = {
         ...user,
         stats: {
           reviewsCount,
-          favoritesCount
-        }
+          favoritesCount,
+        },
       });
     } catch (error) {
       next(error);
@@ -74,8 +74,8 @@ const userController = {
           id: true,
           name: true,
           email: true,
-          createdAt: true
-        }
+          createdAt: true,
+        },
       });
 
       res.json(updatedUser);
@@ -89,7 +89,7 @@ const userController = {
     try {
       const userId = req.user.id;
       const { page = 1, limit = 10 } = req.query;
-      
+
       const pageNum = parseInt(page);
       const limitNum = parseInt(limit);
       const skip = (pageNum - 1) * limitNum;
@@ -106,34 +106,33 @@ const userController = {
                 id: true,
                 title: true,
                 posterPath: true,
-                averageRating: true
-              }
-            }
-          }
+                averageRating: true,
+              },
+            },
+          },
         }),
-        prisma.review.count({ where: { userId } })
+        prisma.review.count({ where: { userId } }),
       ]);
 
       const totalPages = Math.ceil(total / limitNum);
 
       res.json({
-        items: reviews.map(r => ({
+        items: reviews.map((r) => ({
           id: r.id,
           rating: r.rating,
           text: r.text,
           createdAt: r.createdAt,
           updatedAt: r.updatedAt,
-          series: r.series
+          series: r.series,
         })),
         page: pageNum,
         totalPages,
-        total
+        total,
       });
     } catch (error) {
       next(error);
     }
-  }
+  },
 };
 
 module.exports = userController;
-

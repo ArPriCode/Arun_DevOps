@@ -23,7 +23,7 @@ const reviewsController = {
 
       // Check if series exists
       const series = await prisma.series.findUnique({
-        where: { id: parseInt(seriesId) }
+        where: { id: parseInt(seriesId) },
       });
 
       if (!series) {
@@ -35,32 +35,32 @@ const reviewsController = {
         where: {
           userId_seriesId: {
             userId,
-            seriesId: parseInt(seriesId)
-          }
-        }
+            seriesId: parseInt(seriesId),
+          },
+        },
       });
 
       // Create or update review and update aggregates in a transaction
       const review = await prisma.$transaction(async (tx) => {
         let reviewResult;
-        
+
         if (existingReview) {
           // Update existing review
           reviewResult = await tx.review.update({
             where: { id: existingReview.id },
             data: {
               rating: parseInt(rating),
-              text
+              text,
             },
             include: {
               user: {
                 select: {
                   id: true,
                   name: true,
-                  email: true
-                }
-              }
-            }
+                  email: true,
+                },
+              },
+            },
           });
         } else {
           // Create new review
@@ -69,17 +69,17 @@ const reviewsController = {
               userId,
               seriesId: parseInt(seriesId),
               rating: parseInt(rating),
-              text
+              text,
             },
             include: {
               user: {
                 select: {
                   id: true,
                   name: true,
-                  email: true
-                }
-              }
-            }
+                  email: true,
+                },
+              },
+            },
           });
         }
 
@@ -87,15 +87,15 @@ const reviewsController = {
         const aggregates = await tx.review.aggregate({
           where: { seriesId: parseInt(seriesId) },
           _avg: { rating: true },
-          _count: true
+          _count: true,
         });
 
         await tx.series.update({
           where: { id: parseInt(seriesId) },
           data: {
             averageRating: aggregates._avg.rating || 0,
-            reviewsCount: aggregates._count || 0
-          }
+            reviewsCount: aggregates._count || 0,
+          },
         });
 
         return reviewResult;
@@ -109,7 +109,7 @@ const reviewsController = {
         text: review.text,
         createdAt: review.createdAt,
         updatedAt: review.updatedAt,
-        user: review.user
+        user: review.user,
       });
     } catch (error) {
       next(error);
@@ -124,7 +124,10 @@ const reviewsController = {
       const userId = req.user.id;
 
       // Validation
-      if (rating !== undefined && (rating < 1 || rating > 10 || !Number.isInteger(Number(rating)))) {
+      if (
+        rating !== undefined &&
+        (rating < 1 || rating > 10 || !Number.isInteger(Number(rating)))
+      ) {
         return res.status(400).json({ message: 'Rating must be an integer between 1 and 10' });
       }
 
@@ -135,7 +138,7 @@ const reviewsController = {
       // Find review
       const review = await prisma.review.findUnique({
         where: { id: parseInt(id) },
-        include: { series: true }
+        include: { series: true },
       });
 
       if (!review) {
@@ -153,32 +156,32 @@ const reviewsController = {
           where: { id: parseInt(id) },
           data: {
             ...(rating !== undefined && { rating: parseInt(rating) }),
-            ...(text && { text })
+            ...(text && { text }),
           },
           include: {
             user: {
               select: {
                 id: true,
                 name: true,
-                email: true
-              }
-            }
-          }
+                email: true,
+              },
+            },
+          },
         });
 
         // Recalculate aggregates
         const aggregates = await tx.review.aggregate({
           where: { seriesId: review.seriesId },
           _avg: { rating: true },
-          _count: true
+          _count: true,
         });
 
         await tx.series.update({
           where: { id: review.seriesId },
           data: {
             averageRating: aggregates._avg.rating || 0,
-            reviewsCount: aggregates._count || 0
-          }
+            reviewsCount: aggregates._count || 0,
+          },
         });
 
         return updated;
@@ -192,7 +195,7 @@ const reviewsController = {
         text: updatedReview.text,
         createdAt: updatedReview.createdAt,
         updatedAt: updatedReview.updatedAt,
-        user: updatedReview.user
+        user: updatedReview.user,
       });
     } catch (error) {
       next(error);
@@ -207,7 +210,7 @@ const reviewsController = {
 
       // Find review
       const review = await prisma.review.findUnique({
-        where: { id: parseInt(id) }
+        where: { id: parseInt(id) },
       });
 
       if (!review) {
@@ -222,22 +225,22 @@ const reviewsController = {
       // Delete review and recalculate aggregates in transaction
       await prisma.$transaction(async (tx) => {
         await tx.review.delete({
-          where: { id: parseInt(id) }
+          where: { id: parseInt(id) },
         });
 
         // Recalculate aggregates
         const aggregates = await tx.review.aggregate({
           where: { seriesId: review.seriesId },
           _avg: { rating: true },
-          _count: true
+          _count: true,
         });
 
         await tx.series.update({
           where: { id: review.seriesId },
           data: {
             averageRating: aggregates._avg.rating || 0,
-            reviewsCount: aggregates._count || 0
-          }
+            reviewsCount: aggregates._count || 0,
+          },
         });
       });
 
@@ -251,7 +254,7 @@ const reviewsController = {
   async getReviews(req, res, next) {
     try {
       const { seriesId, page = 1, limit = 10 } = req.query;
-      
+
       const pageNum = parseInt(page);
       const limitNum = parseInt(limit);
       const skip = (pageNum - 1) * limitNum;
@@ -272,18 +275,18 @@ const reviewsController = {
               select: {
                 id: true,
                 name: true,
-                email: true
-              }
-            }
-          }
+                email: true,
+              },
+            },
+          },
         }),
-        prisma.review.count({ where })
+        prisma.review.count({ where }),
       ]);
 
       const totalPages = Math.ceil(total / limitNum);
 
       res.json({
-        items: reviews.map(r => ({
+        items: reviews.map((r) => ({
           id: r.id,
           userId: r.userId,
           seriesId: r.seriesId,
@@ -291,17 +294,16 @@ const reviewsController = {
           text: r.text,
           createdAt: r.createdAt,
           updatedAt: r.updatedAt,
-          user: r.user
+          user: r.user,
         })),
         page: pageNum,
         totalPages,
-        total
+        total,
       });
     } catch (error) {
       next(error);
     }
-  }
+  },
 };
 
 module.exports = reviewsController;
-

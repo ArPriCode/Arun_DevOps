@@ -66,8 +66,3 @@
 // };
 
 // module.exports = { verifyToken, generateTokenPair };
-
-
-
-
-

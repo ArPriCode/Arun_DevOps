@@ -6,16 +6,7 @@ function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-const GENRES = [
-  'Action',
-  'Comedy',
-  'Sci-Fi',
-  'Horror',
-  'Thriller',
-  'Romance',
-  'Crime',
-  'Fantasy',
-];
+const GENRES = ['Action', 'Comedy', 'Sci-Fi', 'Horror', 'Thriller', 'Romance', 'Crime', 'Fantasy'];
 
 async function main() {
   console.log('🌱 Seeding 100 dummy web series...');

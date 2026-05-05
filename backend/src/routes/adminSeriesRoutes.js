@@ -16,5 +16,3 @@ router.put('/:id', adminSeriesController.updateSeries);
 router.delete('/:id', adminSeriesController.deleteSeries);
 
 module.exports = router;
-
-

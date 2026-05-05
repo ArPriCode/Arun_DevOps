@@ -33,23 +33,21 @@ const authController = {
         data: {
           name,
           email,
-          password: hashedPassword
+          password: hashedPassword,
         },
         select: {
           id: true,
           name: true,
           email: true,
           role: true,
-          createdAt: true
-        }
+          createdAt: true,
+        },
       });
 
       // Generate JWT token
-      const token = jwt.sign(
-        { id: user.id, email: user.email, role: user.role },
-        JWT_SECRET,
-        { expiresIn: '7d' }
-      );
+      const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, {
+        expiresIn: '7d',
+      });
 
       res.status(201).json({
         token,
@@ -57,8 +55,8 @@ const authController = {
           id: user.id,
           name: user.name,
           email: user.email,
-          role: user.role
-        }
+          role: user.role,
+        },
       });
     } catch (error) {
       next(error);
@@ -87,11 +85,9 @@ const authController = {
       }
 
       // Generate JWT token
-      const token = jwt.sign(
-        { id: user.id, email: user.email, role: user.role },
-        JWT_SECRET,
-        { expiresIn: '7d' }
-      );
+      const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, {
+        expiresIn: '7d',
+      });
 
       res.json({
         token,
@@ -99,14 +95,13 @@ const authController = {
           id: user.id,
           name: user.name,
           email: user.email,
-          role: user.role
-        }
+          role: user.role,
+        },
       });
     } catch (error) {
       next(error);
     }
-  }
+  },
 };
 
 module.exports = authController;
-

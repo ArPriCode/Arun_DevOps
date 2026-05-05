@@ -1,42 +1,41 @@
-import React, { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { authAPI } from '../services/api'
-import Navbar from '../components/Navbar/Navbar'
-import Footer from '../components/Footer/Footer'
-import './CSS/LoginSignup.css'
-
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { authAPI } from '../services/api';
+import Navbar from '../components/Navbar/Navbar';
+import Footer from '../components/Footer/Footer';
+import './CSS/LoginSignup.css';
 
 function Login() {
-  const navigate = useNavigate()
-  const [formData, setFormData] = useState({ email: "", password: "" })
-  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
-  }
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
     try {
-      const res = await authAPI.login(formData)
-      
+      const res = await authAPI.login(formData);
+
       if (res?.data?.token && res?.data?.user) {
-        localStorage.setItem("token", res.data.token)
-        localStorage.setItem("user", JSON.stringify(res.data.user))
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('user', JSON.stringify(res.data.user));
         // Dispatch custom event to update Navbar
-        window.dispatchEvent(new Event('auth-change'))
-        navigate("/home")
+        window.dispatchEvent(new Event('auth-change'));
+        navigate('/home');
       } else {
-        alert("Login failed: token missing in response")
+        alert('Login failed: token missing in response');
       }
     } catch (err) {
-      console.error("Login error:", err.response?.data || err.message || err)
-      alert("Login failed: " + (err.response?.data?.message || err.message || "Unknown error"))
+      console.error('Login error:', err.response?.data || err.message || err);
+      alert('Login failed: ' + (err.response?.data?.message || err.message || 'Unknown error'));
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="auth-page">
@@ -53,10 +52,10 @@ function Login() {
             <form className="auth-form" onSubmit={handleSubmit}>
               <div className="form-group">
                 <label className="form-label">EMAIL</label>
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   name="email"
-                  placeholder="your@email.com" 
+                  placeholder="your@email.com"
                   className="form-input"
                   value={formData.email}
                   onChange={handleChange}
@@ -65,10 +64,10 @@ function Login() {
               </div>
               <div className="form-group">
                 <label className="form-label">PASSWORD</label>
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   name="password"
-                  placeholder="••••••••" 
+                  placeholder="••••••••"
                   className="form-input"
                   value={formData.password}
                   onChange={handleChange}
@@ -80,22 +79,26 @@ function Login() {
                   <input type="checkbox" className="checkbox-input" />
                   <span>Remember me</span>
                 </label>
-                <a href="#" className="forgot-link">Forgot password?</a>
+                <a href="#" className="forgot-link">
+                  Forgot password?
+                </a>
               </div>
               <button type="submit" className="auth-submit-btn" disabled={loading}>
-                {loading ? "LOGGING IN..." : "LOGIN"}
+                {loading ? 'LOGGING IN...' : 'LOGIN'}
               </button>
             </form>
             <div className="auth-footer">
-              Don't have an account? <Link to="/signup" className="auth-link">Sign Up</Link>
+              Don't have an account?{' '}
+              <Link to="/signup" className="auth-link">
+                Sign Up
+              </Link>
             </div>
           </div>
         </div>
       </section>
       <Footer />
     </div>
-  )
+  );
 }
 
-export default Login
-
+export default Login;

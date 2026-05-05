@@ -35,7 +35,7 @@ const externalController = {
       // Sync to local DB
       const externalId = tmdbId.toString();
       let series = await prisma.series.findUnique({
-        where: { externalId }
+        where: { externalId },
       });
 
       if (!series) {
@@ -50,8 +50,8 @@ const externalController = {
             genres: JSON.stringify(tmdbData.genres || []),
             releaseYear: tmdbData.releaseYear,
             averageRating: 0,
-            reviewsCount: 0
-          }
+            reviewsCount: 0,
+          },
         });
       } else {
         // Update existing series metadata
@@ -63,8 +63,8 @@ const externalController = {
             posterPath: tmdbData.posterPath || series.posterPath,
             backdropPath: tmdbData.backdropPath || series.backdropPath,
             genres: JSON.stringify(tmdbData.genres || []),
-            releaseYear: tmdbData.releaseYear || series.releaseYear
-          }
+            releaseYear: tmdbData.releaseYear || series.releaseYear,
+          },
         });
       }
 
@@ -73,7 +73,7 @@ const externalController = {
         ...tmdbData,
         localId: series.id,
         averageRating: series.averageRating,
-        reviewsCount: series.reviewsCount
+        reviewsCount: series.reviewsCount,
       };
 
       res.json(response);
@@ -92,8 +92,7 @@ const externalController = {
       console.error('External genres error:', error);
       res.status(500).json({ message: error.message || 'Failed to fetch genres' });
     }
-  }
+  },
 };
 
 module.exports = externalController;
-

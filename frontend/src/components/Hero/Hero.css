@@ -11,9 +11,15 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
-    linear-gradient(90deg, rgba(10, 10, 15, 0.95) 0%, rgba(10, 10, 15, 0.7) 50%, rgba(10, 10, 15, 0.4) 100%),
-    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect fill="%231a0000" width="1200" height="800"/><rect fill="%23330000" x="600" y="0" width="600" height="800"/><circle fill="%23ff4444" opacity="0.3" cx="800" cy="200" r="150"/><circle fill="%238800ff" opacity="0.2" cx="900" cy="400" r="200"/></svg>') center/cover;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(10, 10, 15, 0.95) 0%,
+      rgba(10, 10, 15, 0.7) 50%,
+      rgba(10, 10, 15, 0.4) 100%
+    ),
+    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect fill="%231a0000" width="1200" height="800"/><rect fill="%23330000" x="600" y="0" width="600" height="800"/><circle fill="%23ff4444" opacity="0.3" cx="800" cy="200" r="150"/><circle fill="%238800ff" opacity="0.2" cx="900" cy="400" r="200"/></svg>')
+      center/cover;
   filter: blur(2px);
 }
 
@@ -223,4 +229,3 @@
     padding: 5px 10px;
   }
 }
-

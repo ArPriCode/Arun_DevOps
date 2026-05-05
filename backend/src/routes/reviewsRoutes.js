@@ -16,4 +16,3 @@ router.put('/:id', verifyToken, reviewsController.updateReview);
 router.delete('/:id', verifyToken, reviewsController.deleteReview);
 
 module.exports = router;
-

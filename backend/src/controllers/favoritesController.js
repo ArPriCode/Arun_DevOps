@@ -14,7 +14,7 @@ const favoritesController = {
 
       // Check if series exists
       const series = await prisma.series.findUnique({
-        where: { id: parseInt(seriesId) }
+        where: { id: parseInt(seriesId) },
       });
 
       if (!series) {
@@ -26,9 +26,9 @@ const favoritesController = {
         where: {
           userId_seriesId: {
             userId,
-            seriesId: parseInt(seriesId)
-          }
-        }
+            seriesId: parseInt(seriesId),
+          },
+        },
       });
 
       if (existing) {
@@ -39,7 +39,7 @@ const favoritesController = {
       const favorite = await prisma.favorite.create({
         data: {
           userId,
-          seriesId: parseInt(seriesId)
+          seriesId: parseInt(seriesId),
         },
         include: {
           series: {
@@ -48,17 +48,17 @@ const favoritesController = {
               title: true,
               posterPath: true,
               averageRating: true,
-              reviewsCount: true
-            }
-          }
-        }
+              reviewsCount: true,
+            },
+          },
+        },
       });
 
       res.status(201).json({
         id: favorite.id,
         seriesId: favorite.seriesId,
         addedAt: favorite.addedAt,
-        series: favorite.series
+        series: favorite.series,
       });
     } catch (error) {
       next(error);
@@ -73,7 +73,7 @@ const favoritesController = {
 
       // Find favorite
       const favorite = await prisma.favorite.findUnique({
-        where: { id: parseInt(id) }
+        where: { id: parseInt(id) },
       });
 
       if (!favorite) {
@@ -87,7 +87,7 @@ const favoritesController = {
 
       // Delete favorite
       await prisma.favorite.delete({
-        where: { id: parseInt(id) }
+        where: { id: parseInt(id) },
       });
 
       res.json({ message: 'Favorite removed successfully' });
@@ -101,7 +101,7 @@ const favoritesController = {
     try {
       const userId = req.user.id;
       const { page = 1, limit = 10 } = req.query;
-      
+
       const pageNum = parseInt(page);
       const limitNum = parseInt(limit);
       const skip = (pageNum - 1) * limitNum;
@@ -123,37 +123,37 @@ const favoritesController = {
                 releaseYear: true,
                 averageRating: true,
                 reviewsCount: true,
-                overview: true
-              }
-            }
-          }
+                overview: true,
+              },
+            },
+          },
         }),
-        prisma.favorite.count({ where: { userId } })
+        prisma.favorite.count({ where: { userId } }),
       ]);
 
       const totalPages = Math.ceil(total / limitNum);
 
-      const results = favorites.map(f => ({
+      const results = favorites.map((f) => ({
         id: f.id,
         seriesId: f.seriesId,
         addedAt: f.addedAt,
         series: {
           ...f.series,
-          genres: typeof f.series.genres === 'string' ? JSON.parse(f.series.genres) : f.series.genres
-        }
+          genres:
+            typeof f.series.genres === 'string' ? JSON.parse(f.series.genres) : f.series.genres,
+        },
       }));
 
       res.json({
         results,
         page: pageNum,
         totalPages,
-        total
+        total,
       });
     } catch (error) {
       next(error);
     }
-  }
+  },
 };
 
 module.exports = favoritesController;
-

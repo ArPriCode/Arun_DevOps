@@ -44,7 +44,9 @@ describe('verifyToken middleware', () => {
     verifyToken(req, res, mockNext);
 
     expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'No token provided' }));
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'No token provided' }),
+    );
     expect(mockNext).not.toHaveBeenCalled();
   });
 
@@ -84,9 +86,7 @@ describe('verifyToken middleware', () => {
     verifyToken(req, res, mockNext);
 
     expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'Invalid token' }),
-    );
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Invalid token' }));
     expect(mockNext).not.toHaveBeenCalled();
   });
 });

@@ -23,8 +23,7 @@ const isHindiShow = (show) => {
   if (!show) return false;
   if ((show.language || '').toLowerCase() === 'hindi') return true;
 
-  const countryCode =
-    show.webChannel?.country?.code || show.network?.country?.code || '';
+  const countryCode = show.webChannel?.country?.code || show.network?.country?.code || '';
   if (countryCode.toLowerCase() === 'in') return true;
 
   return false;
@@ -32,7 +31,10 @@ const isHindiShow = (show) => {
 
 const stripHtml = (html) => {
   if (!html) return '';
-  return html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+  return html
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 };
 
 const mapToPrismaSeries = (show) => {
@@ -98,9 +100,7 @@ async function main() {
       }
     }
 
-    console.log(
-      `   Collected so far -> Hindi: ${hindiShows.size}, Global: ${globalShows.size}`
-    );
+    console.log(`   Collected so far -> Hindi: ${hindiShows.size}, Global: ${globalShows.size}`);
 
     if (hindiShows.size >= HINDI_TARGET && globalShows.size >= GLOBAL_TARGET) {
       console.log('✅ Target collected, stopping pagination.');
@@ -126,7 +126,7 @@ async function main() {
   }
 
   console.log(
-    `📦 Total TVMaze shows selected for seed: ${finalShows.length} (Hindi: ${hindiShows.size}, Global: ${globalShows.size})`
+    `📦 Total TVMaze shows selected for seed: ${finalShows.length} (Hindi: ${hindiShows.size}, Global: ${globalShows.size})`,
   );
 
   if (finalShows.length === 0) {
@@ -147,9 +147,7 @@ async function main() {
   try {
     for (let i = 0; i < mapped.length; i += CHUNK_SIZE) {
       const chunk = mapped.slice(i, i + CHUNK_SIZE);
-      console.log(
-        `💾 Inserting chunk ${i / CHUNK_SIZE + 1} (${chunk.length} items)...`
-      );
+      console.log(`💾 Inserting chunk ${i / CHUNK_SIZE + 1} (${chunk.length} items)...`);
 
       const res = await prisma.series.createMany({
         data: chunk,
@@ -183,5 +181,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-
-

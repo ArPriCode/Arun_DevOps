@@ -13,4 +13,3 @@ describe('Cinemora basic user flow', () => {
     cy.contains(/reviews/i).should('exist');
   });
 });
-

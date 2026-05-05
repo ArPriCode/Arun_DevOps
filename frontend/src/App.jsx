@@ -1,11 +1,11 @@
-import React from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import Home from './Pages/Home'
-import Login from './Pages/Login'
-import Signup from './Pages/Signup'
-import Series from './Pages/Series'
-import SeriesDetail from './Pages/SeriesDetail'
-import Profile from './Pages/Profile'
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Home from './Pages/Home';
+import Login from './Pages/Login';
+import Signup from './Pages/Signup';
+import Series from './Pages/Series';
+import SeriesDetail from './Pages/SeriesDetail';
+import Profile from './Pages/Profile';
 
 function App() {
   return (
@@ -24,8 +24,7 @@ function App() {
         </Routes>
       </div>
     </Router>
-  )
+  );
 }
 
-export default App
-
+export default App;

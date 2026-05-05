@@ -43,15 +43,17 @@ app.use((req, res, next) => {
 
 // Robust CORS configuration
 // TEMPORARY — DEBUG ONLY
-app.use(cors({
-  origin: (origin, callback) => {
-    // allow everything temporarily — browser origin will be echoed in response
-    return callback(null, true);
-  },
-  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization','X-Requested-With'],
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // allow everything temporarily — browser origin will be echoed in response
+      return callback(null, true);
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true,
+  }),
+);
 
 // quick preflight responder
 app.use((req, res, next) => {
@@ -59,11 +61,10 @@ app.use((req, res, next) => {
   next();
 });
 
-
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  max: 100, // limit each IP to 100 requests per windowMs
 });
 app.use('/api/', limiter);
 
@@ -101,7 +102,6 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`✅ Server running on http://${HOST}:${PORT}`);
   });
 }
-
 
 // if (process.env.NODE_ENV !== 'test') {
 //   const PORT = process.env.PORT || 5001;

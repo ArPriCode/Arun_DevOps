@@ -9,4 +9,3 @@ router.get('/', seriesController.getSeries);
 router.get('/:id', seriesController.getSeriesById);
 
 module.exports = router;
-

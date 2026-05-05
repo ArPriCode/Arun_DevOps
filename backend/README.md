@@ -68,6 +68,7 @@ npx prisma migrate dev
 ```
 
 This will:
+
 - Generate Prisma Client
 - Apply database migrations
 - Create all required tables
@@ -81,6 +82,7 @@ npm run seed
 ```
 
 Sample login credentials after seeding:
+
 - Email: `john@example.com`, Password: `password123`
 - Email: `jane@example.com`, Password: `password123`
 - Email: `mike@example.com`, Password: `password123`
@@ -104,28 +106,34 @@ Server will run on `http://127.0.0.1:5001`
 ## API Endpoints
 
 ### Base URL
+
 `http://127.0.0.1:5001/api`
 
 ### Authentication
+
 - `POST /api/auth/signup` - Create new user account
 - `POST /api/auth/login` - Login and get JWT token
 
 ### Series
+
 - `GET /api/series` - Get series list (supports query params: `q`, `genre`, `sort`, `page`, `limit`, `filter`)
 - `GET /api/series/:id` - Get series details with reviews
 
 ### Reviews
+
 - `GET /api/reviews` - Get reviews (query params: `seriesId`, `page`, `limit`)
 - `POST /api/reviews` - Create review (auth required)
 - `PUT /api/reviews/:id` - Update review (auth required, owner only)
 - `DELETE /api/reviews/:id` - Delete review (auth required, owner only)
 
 ### Favorites
+
 - `POST /api/favorites` - Add to favorites (auth required)
 - `DELETE /api/favorites/:id` - Remove from favorites (auth required)
 - `GET /api/user/favorites` - Get user's favorites (auth required)
 
 ### User
+
 - `GET /api/users/:id` - Get user profile
 - `PUT /api/users/:id` - Update user profile (auth required)
 - `GET /api/user/reviews` - Get logged-in user's reviews (auth required)
@@ -211,15 +219,15 @@ TVMaze helper responses are cached in-memory with a default TTL of 1 hour. To us
 ## Troubleshooting
 
 **Database connection error:**
+
 - Check MySQL is running
 - Verify DATABASE_URL in `.env`
 - Ensure database exists
 
-
 **Port already in use:**
+
 - Change PORT in `.env` or kill process using port 5001
 
 ## License
 
 ISC
-

@@ -1,21 +1,21 @@
-import React, { useEffect, useState } from 'react'
-import Navbar from '../components/Navbar/Navbar'
-import Footer from '../components/Footer/Footer'
-import { seriesAPI, adminSeriesAPI } from '../services/api'
-import './CSS/Series.css'
+import React, { useEffect, useState } from 'react';
+import Navbar from '../components/Navbar/Navbar';
+import Footer from '../components/Footer/Footer';
+import { seriesAPI, adminSeriesAPI } from '../services/api';
+import './CSS/Series.css';
 
 function AdminSeriesManager() {
-  const [series, setSeries] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState(null)
+  const [series, setSeries] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
   const [form, setForm] = useState({
     id: null,
     title: '',
     overview: '',
     releaseYear: '',
     genres: '',
-  })
+  });
 
   const resetForm = () => {
     setForm({
@@ -24,34 +24,34 @@ function AdminSeriesManager() {
       overview: '',
       releaseYear: '',
       genres: '',
-    })
-  }
+    });
+  };
 
   const fetchSeries = async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const res = await seriesAPI.getSeries({ page: 1, limit: 100, sort: 'latest' })
-      setSeries(res.data.results || [])
+      const res = await seriesAPI.getSeries({ page: 1, limit: 100, sort: 'latest' });
+      setSeries(res.data.results || []);
     } catch (err) {
-      console.error('Failed to load series:', err)
-      setError(err.response?.data?.message || 'Failed to load series')
+      console.error('Failed to load series:', err);
+      setError(err.response?.data?.message || 'Failed to load series');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchSeries()
-  }, [])
+    fetchSeries();
+  }, []);
 
   const handleChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
       [name]: value,
-    }))
-  }
+    }));
+  };
 
   const handleEdit = (s) => {
     setForm({
@@ -60,68 +60,68 @@ function AdminSeriesManager() {
       overview: s.overview || '',
       releaseYear: s.releaseYear || '',
       genres: Array.isArray(s.genres) ? s.genres.join(', ') : '',
-    })
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!form.title.trim()) {
-      alert('Title is required')
-      return
+      alert('Title is required');
+      return;
     }
 
-    setSaving(true)
+    setSaving(true);
     try {
       const payload = {
         title: form.title.trim(),
         overview: form.overview.trim(),
         releaseYear: form.releaseYear ? parseInt(form.releaseYear) : null,
         genres: form.genres,
-      }
+      };
 
       if (form.id) {
-        await adminSeriesAPI.updateSeries(form.id, payload)
-        alert('Series updated successfully')
+        await adminSeriesAPI.updateSeries(form.id, payload);
+        alert('Series updated successfully');
       } else {
-        await adminSeriesAPI.createSeries(payload)
-        alert('Series created successfully')
+        await adminSeriesAPI.createSeries(payload);
+        alert('Series created successfully');
       }
 
-      resetForm()
-      await fetchSeries()
+      resetForm();
+      await fetchSeries();
     } catch (err) {
-      console.error('Failed to save series:', err)
-      alert(err.response?.data?.message || 'Failed to save series')
+      console.error('Failed to save series:', err);
+      alert(err.response?.data?.message || 'Failed to save series');
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this series?')) return
+    if (!window.confirm('Are you sure you want to delete this series?')) return;
 
     try {
-      await adminSeriesAPI.deleteSeries(id)
-      alert('Series deleted (soft-delete) successfully')
-      await fetchSeries()
+      await adminSeriesAPI.deleteSeries(id);
+      alert('Series deleted (soft-delete) successfully');
+      await fetchSeries();
     } catch (err) {
-      console.error('Failed to delete series:', err)
-      alert(err.response?.data?.message || 'Failed to delete series')
+      console.error('Failed to delete series:', err);
+      alert(err.response?.data?.message || 'Failed to delete series');
     }
-  }
+  };
 
   const getGenresArray = (genres) => {
-    if (Array.isArray(genres)) return genres
+    if (Array.isArray(genres)) return genres;
     if (typeof genres === 'string') {
       try {
-        return JSON.parse(genres)
+        return JSON.parse(genres);
       } catch {
-        return [genres]
+        return [genres];
       }
     }
-    return []
-  }
+    return [];
+  };
 
   return (
     <div className="series-page">
@@ -131,14 +131,13 @@ function AdminSeriesManager() {
           <div className="series-header">
             <h1 className="series-page-title">ADMIN: MANAGE SERIES</h1>
             <p style={{ color: '#ccc' }}>
-              Create, update, and soft-delete series. Soft-deleted series are hidden from public lists.
+              Create, update, and soft-delete series. Soft-deleted series are hidden from public
+              lists.
             </p>
           </div>
 
           <div className="detail-card" style={{ marginBottom: '30px' }}>
-            <h2 className="detail-card-title">
-              {form.id ? 'Edit Series' : 'Add New Series'}
-            </h2>
+            <h2 className="detail-card-title">{form.id ? 'Edit Series' : 'Add New Series'}</h2>
             <form onSubmit={handleSubmit} className="review-form">
               <div className="review-text-section">
                 <label className="form-label">Title *</label>
@@ -205,12 +204,13 @@ function AdminSeriesManager() {
 
           <div className="detail-card">
             <h2 className="detail-card-title">Existing Series</h2>
-            {error && (
-              <p style={{ color: 'red', marginBottom: '10px' }}>{error}</p>
-            )}
+            {error && <p style={{ color: 'red', marginBottom: '10px' }}>{error}</p>}
             {loading ? (
               <div style={{ padding: '20px', textAlign: 'center' }}>
-                <i className="fas fa-spinner fa-spin" style={{ fontSize: '1.5rem', color: '#e50914' }}></i>
+                <i
+                  className="fas fa-spinner fa-spin"
+                  style={{ fontSize: '1.5rem', color: '#e50914' }}
+                ></i>
                 <p>Loading series...</p>
               </div>
             ) : series.length === 0 ? (
@@ -224,14 +224,25 @@ function AdminSeriesManager() {
                     <div className="review-item-header">
                       <div>
                         <h3>{s.title}</h3>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '5px', color: '#ccc' }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            marginTop: '5px',
+                            color: '#ccc',
+                          }}
+                        >
                           {s.releaseYear && <span>{s.releaseYear}</span>}
-                          {s.releaseYear && (getGenresArray(s.genres).length > 0) && <span>•</span>}
+                          {s.releaseYear && getGenresArray(s.genres).length > 0 && <span>•</span>}
                           {getGenresArray(s.genres).length > 0 && (
                             <span>{getGenresArray(s.genres).join(', ')}</span>
                           )}
                           <span>•</span>
-                          <span>Rating: {s.averageRating?.toFixed(1) || '0.0'} ({s.reviewsCount || 0} reviews)</span>
+                          <span>
+                            Rating: {s.averageRating?.toFixed(1) || '0.0'} ({s.reviewsCount || 0}{' '}
+                            reviews)
+                          </span>
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: '8px' }}>
@@ -244,7 +255,11 @@ function AdminSeriesManager() {
                         </button>
                         <button
                           className="submit-review-btn"
-                          style={{ padding: '6px 12px', fontSize: '0.9rem', backgroundColor: '#b91c1c' }}
+                          style={{
+                            padding: '6px 12px',
+                            fontSize: '0.9rem',
+                            backgroundColor: '#b91c1c',
+                          }}
                           onClick={() => handleDelete(s.id)}
                         >
                           Delete
@@ -260,9 +275,7 @@ function AdminSeriesManager() {
       </section>
       <Footer />
     </div>
-  )
+  );
 }
 
-export default AdminSeriesManager
-
-
+export default AdminSeriesManager;
