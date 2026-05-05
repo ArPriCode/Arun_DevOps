@@ -12,6 +12,17 @@ provider "aws" {
   region = var.aws_region
 }
 
+# ── Import existing resources ────────────────────────────────────────────────
+import {
+  to = aws_s3_bucket.cinemora_artifacts
+  id = "cinemora-artifacts-arun-devops-2026"
+}
+
+import {
+  to = aws_ecr_repository.cinemora_backend
+  id = "cinemora-backend"
+}
+
 # ── S3 Bucket ────────────────────────────────────────────────────────────────
 
 resource "aws_s3_bucket" "cinemora_artifacts" {
@@ -77,10 +88,15 @@ data "aws_vpc" "default" {
   default = true
 }
 
-data "aws_subnets" "default" {
+# Only use subnets in EKS-supported AZs (us-east-1a, b, c, d, f)
+data "aws_subnets" "eks_supported" {
   filter {
     name   = "vpc-id"
     values = [data.aws_vpc.default.id]
+  }
+  filter {
+    name   = "availabilityZone"
+    values = ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d", "us-east-1f"]
   }
 }
 
@@ -91,7 +107,7 @@ resource "aws_eks_cluster" "cinemora" {
   role_arn = data.aws_iam_role.lab_role.arn
 
   vpc_config {
-    subnet_ids = data.aws_subnets.default.ids
+    subnet_ids = data.aws_subnets.eks_supported.ids
   }
 
   tags = {
@@ -106,7 +122,7 @@ resource "aws_eks_node_group" "cinemora" {
   cluster_name    = aws_eks_cluster.cinemora.name
   node_group_name = "cinemora-nodes"
   node_role_arn   = data.aws_iam_role.lab_role.arn
-  subnet_ids      = data.aws_subnets.default.ids
+  subnet_ids      = data.aws_subnets.eks_supported.ids
 
   scaling_config {
     desired_size = 2
