@@ -1,0 +1,47 @@
+name: PR Checks (Lint & Format)
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint-and-format:
+    name: Lint & Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: ESLint – backend
+        run: npm run lint
+        working-directory: backend
+
+      - name: ESLint – frontend
+        run: npm run lint
+        working-directory: frontend
+
+      - name: Prettier format check – backend
+        run: npm run format:check
+        working-directory: backend
+
+      - name: Prettier format check – frontend
+        run: npm run format:check
+        working-directory: frontend
