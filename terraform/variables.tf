@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "s3_bucket_name" {
   description = "Unique S3 bucket name for Cinemora artifacts"
   type        = string
-  default     = "cinemora-artifacts-devops-2026"
+  default     = "cinemora-artifacts-arun-devops-2026"
 }
 
 variable "environment" {
