@@ -1,0 +1,67 @@
+name: EC2 Initial Setup
+
+on:
+  workflow_dispatch: # Manual trigger only
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Write SSH key
+        env:
+          EC2_SSH_KEY_B64: ${{ secrets.EC2_SSH_KEY_B64 }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s' "${EC2_SSH_KEY_B64}" | tr -d '\r' | base64 --decode > ~/.ssh/ec2_key
+          chmod 600 ~/.ssh/ec2_key
+
+      - name: Add EC2 to known_hosts
+        run: |
+          ssh-keyscan -T 10 -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts || true
+
+      - name: Install Node.js, Git, PM2 on EC2
+        run: |
+          ssh -i ~/.ssh/ec2_key -o StrictHostKeyChecking=no \
+            "${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}" << 'ENDSSH'
+          set -e
+
+          echo "==> Updating apt..."
+          sudo apt-get update -y
+
+          echo "==> Installing Git..."
+          sudo apt-get install -y git
+
+          echo "==> Installing Node.js 18..."
+          curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+          sudo apt-get install -y nodejs
+
+          echo "==> Node version: $(node --version)"
+          echo "==> NPM version: $(npm --version)"
+
+          echo "==> Installing PM2 globally..."
+          sudo npm install -g pm2
+
+          echo "==> PM2 version: $(pm2 --version)"
+
+          echo "==> Installing MySQL..."
+          sudo apt-get install -y mysql-server
+
+          echo "==> Starting MySQL..."
+          sudo systemctl start mysql
+          sudo systemctl enable mysql
+
+          echo "==> Creating database and user..."
+          sudo mysql -e "CREATE DATABASE IF NOT EXISTS cinemora;"
+          sudo mysql -e "CREATE USER IF NOT EXISTS 'cinemora'@'localhost' IDENTIFIED BY 'cinemora123';"
+          sudo mysql -e "GRANT ALL PRIVILEGES ON cinemora.* TO 'cinemora'@'localhost';"
+          sudo mysql -e "FLUSH PRIVILEGES;"
+
+          echo "✅ EC2 setup complete!"
+          echo "Node: $(node --version)"
+          echo "NPM: $(npm --version)"
+          echo "PM2: $(pm2 --version)"
+          ENDSSH
