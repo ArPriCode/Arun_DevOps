@@ -14,10 +14,18 @@ jobs:
       - name: Write SSH key
         env:
           EC2_SSH_KEY_B64: ${{ secrets.EC2_SSH_KEY_B64 }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
-          printf '%s' "${EC2_SSH_KEY_B64}" | tr -d '\r' | base64 --decode > ~/.ssh/ec2_key
+          if [ -n "${EC2_SSH_KEY_B64}" ]; then
+            # Try base64 decode; if it fails, treat value as raw PEM
+            printf '%s' "${EC2_SSH_KEY_B64}" | tr -d '\r\n' | base64 --decode > ~/.ssh/ec2_key 2>/dev/null \
+              || printf '%s\n' "${EC2_SSH_KEY_B64}" | tr -d '\r' > ~/.ssh/ec2_key
+          elif [ -n "${EC2_SSH_KEY}" ]; then
+            printf '%s\n' "${EC2_SSH_KEY}" | tr -d '\r' > ~/.ssh/ec2_key
+          fi
           chmod 600 ~/.ssh/ec2_key
+          head -1 ~/.ssh/ec2_key
 
       - name: Add EC2 to known_hosts
         run: |
