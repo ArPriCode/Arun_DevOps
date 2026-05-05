@@ -7,23 +7,129 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  # ── Backend: install → lint → format-check → test ──────────────────────────
+  backend:
+    name: Backend (lint + test)
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
       - name: Install backend dependencies
-        run: cd backend && npm install
-      - name: Install frontend dependencies
-        run: cd frontend && npm install
+        run: npm ci
+        working-directory: backend
+
+      - name: Lint (backend)
+        run: npm run lint
+        working-directory: backend
+
+      - name: Format check (backend)
+        run: npm run format:check
+        working-directory: backend
+
       - name: Run backend tests
-        run: cd backend && npm test
-      - name: Run frontend tests
-        run: cd frontend && npm test
-      - name: Run linter (backend)
-        run: cd backend && npm run lint
-      - name: Run linter (frontend)
-        run: cd frontend && npm run lint
+        run: npm test
+        working-directory: backend
+        env:
+          NODE_ENV: test
+          JWT_SECRET: test-jwt-secret-ci
+
+  # ── Frontend: install → lint → format-check → unit tests ───────────────────
+  frontend:
+    name: Frontend (lint + test)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Lint (frontend)
+        run: npm run lint
+        working-directory: frontend
+
+      - name: Format check (frontend)
+        run: npm run format:check
+        working-directory: frontend
+
+      - name: Run frontend unit tests
+        run: npm test
+        working-directory: frontend
+
+  # ── E2E: Cypress against a running dev stack ────────────────────────────────
+  e2e:
+    name: E2E Tests (Cypress)
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Start backend server
+        run: npm start &
+        working-directory: backend
+        env:
+          NODE_ENV: test
+          JWT_SECRET: test-jwt-secret-ci
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'mysql://root:root@localhost:3306/cinemora_test' }}
+          PORT: 5001
+
+      - name: Wait for backend to be ready
+        run: |
+          for i in $(seq 1 15); do
+            curl -sf http://localhost:5001/health && break
+            echo "Waiting for backend... attempt $i"
+            sleep 2
+          done
+
+      - name: Start frontend dev server
+        run: npm run dev &
+        working-directory: frontend
+        env:
+          VITE_API_URL: http://localhost:5001/api
+
+      - name: Wait for frontend to be ready
+        run: |
+          for i in $(seq 1 15); do
+            curl -sf http://localhost:5173 && break
+            echo "Waiting for frontend... attempt $i"
+            sleep 2
+          done
+
+      - name: Run Cypress E2E tests
+        run: npm run test:e2e
+        working-directory: frontend
+        env:
+          CYPRESS_BASE_URL: http://localhost:5173
